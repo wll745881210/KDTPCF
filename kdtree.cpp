@@ -92,10 +92,9 @@ void kdtree::clear( kdtree_node * & node )
 ////////////////////////////////////////////////////////////
 // Build tree structure
 
-kdtree_node * kdtree::create_node( kdtree_node *
-								   parent_node,
-								   int idx_start,
-								   int idx_end, int depth )
+kdtree_node * kdtree::create_node
+( kdtree_node * parent_node, int idx_start, int idx_end,
+  int depth )
 {
 	if( idx_end < idx_start )
 		return NULL;
@@ -107,11 +106,12 @@ kdtree_node * kdtree::create_node( kdtree_node *
 	const int axis = depth % 3;
 	const int idx_median
 		= select_median( idx_start, idx_end, axis );
-	current_node->num_nodes = idx_end - idx_start + 1;
+	current_node->idx_start = idx_start;
+	current_node->idx_end   = idx_end;
 	current_node->max    = coord_max;
 	current_node->min    = coord_min;
 
-	if( current_node->num_nodes > 1 )
+	if( current_node->idx_end > current_node->idx_start )
 	{		
 		current_node->left
 			= create_node( current_node, idx_start,
@@ -137,7 +137,8 @@ void kdtree::display_node( kdtree_node * node, int depth )
 	
 	for( int i = 0; i < depth; ++ i )
 		std::cout << "  ";
-	std::cout << "|__" << node->num_nodes << ' '
+	std::cout << "|__"
+			  << node->idx_end- node->idx_start + 1 << ' '
 			  << node->max.x << ' ' << node->max.y << ' '
 			  << node->max.z << '\n';
 	
@@ -150,14 +151,9 @@ void kdtree::build_tree(  )
 {
 	if( source_list.size(  ) < 1 )
 		return;
-	std::cout << "Building k-d tree... ";
-	std::cout.flush(  );
-
-	root_node = create_node( NULL, 0,
-							 source_list.size(  ) - 1, 0 );
-	std::cout << "Done. Maximum depth: "
-			  << max_depth << std::endl;
-	
+	root_node
+		= create_node( NULL, 0,
+					   source_list.size(  ) - 1, 0 );
 	return;
 }
 

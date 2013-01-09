@@ -7,57 +7,84 @@
 #include "read_data.h"
 #include "input.h"
 #include <iostream>
+#include <iomanip>
 #include <string>
 #include <ctime>
+#include <omp.h>
+#include <cmath>
+
+void show_wall_t( std::string title, double start,
+			 double finish )
+{
+	std::cout << std::setw( 30 ) << std::left << title+": "
+			  << std::setw( 8 ) << std::left 
+			  << finish - start << " sec."<< std::endl;
+	return;
+}
 
 void driver( const std::string & par_file_name )
 {
-	clock_t start( 0 ), precomp( 0 );
-	clock_t autocal( 0 ), crosscal( 0 );
-	start = clock(  );
+	double start( 0 ), precomp( 0 );
+	double autocal( 0 ), crosscal( 0 );
+	start = omp_get_wtime(  );
 	
 	input read_par( par_file_name );
 	read_par.read(  );
-	read_par.get_init(  );
 	
 	kdtree data;
 	kdtree rand;
 	correlate corr;
 	read_data read;
 
-	read.set_cosmology( read_par.lambda, read_par.z_max );
-	corr.set_dist_bin( read_par.s_max, read_par.s_min,
-					   read_par.s_bin );
+	double lambda( 0. ), z_max( 0. );
+	read_par.find_key( "lambda", lambda );
+	read_par.find_key( "z_max", z_max );
+	read.set_cosmology( lambda, z_max );
 	
-	read.read_from_file( read_par.data_file_name, data );
-	data.build_tree(  );
-	read.read_from_file( read_par.rand_file_name, rand );
-	rand.build_tree(  );
-	precomp = clock(  );
-	
-	corr.gen_bin_counts_auto( data );
-	corr.output( read_par.data_file_name + "_ddbins" );
-	corr.gen_bin_counts_auto( rand );
-	corr.output( read_par.rand_file_name + "_rrbins" );
-	autocal = clock(  );
-	
-	corr.gen_bin_counts_cross( data, rand );
-	corr.output( read_par.data_file_name + "_" + 
-				 read_par.rand_file_name + "_drbins" );
-	crosscal = clock(  );
+	double s_max( 0. ), s_min( 0. );
+	int s_bin( 0 );
+	read_par.find_key( "s_max", s_max );
+	read_par.find_key( "s_min", s_min );
+	read_par.find_key( "s_bin", s_bin );
+	corr.set_dist_bin( s_max, s_min, s_bin );
 
-	std::cout << "Time consumption: "
-			  << float( crosscal - start ) / CLOCKS_PER_SEC
-			  << " sec."<< std::endl;
-	std::cout << "Preprocessing: "
-			  << float( precomp - start ) / CLOCKS_PER_SEC
-			  << " sec."<< std::endl;
-	std::cout << "Auto-correlation: "
-			  << float( autocal - precomp ) / CLOCKS_PER_SEC
-			  << " sec."<< std::endl;
-	std::cout << "Cross-correlation: "
-			  << float( crosscal - autocal ) / CLOCKS_PER_SEC
-			  << " sec."<< std::endl;
+	std::string data_file_name, rand_file_name;
+	read_par.find_key( "file_data", data_file_name );
+	read_par.find_key( "file_rand", rand_file_name );	
+	std::cout << "Reading data from files..." << std::flush;
+	read.read_from_file( data_file_name, data );
+	read.read_from_file( rand_file_name, rand );
+	std::cout << "Done." << std::endl;
+	
+	int num_threads( 0 );
+	read_par.find_key( "num_threads", num_threads );
+	std::cout << "Building trees..." << std::flush;
+	omp_set_num_threads( num_threads );
+	#pragma omp parallel sections
+	{
+		#pragma omp section
+		data.build_tree(  );
+		#pragma omp section
+		rand.build_tree(  );
+	}
+	precomp = omp_get_wtime(  );
+	std::cout << "Done." << std::endl;
+
+	corr.set_num_threads( num_threads );
+	corr.gen_bin_counts_auto( data );
+	corr.output( data_file_name + "_ddbins" );
+	corr.gen_bin_counts_auto( rand );
+	corr.output( rand_file_name + "_rrbins" );
+	autocal = omp_get_wtime(  );
+	corr.gen_bin_counts_cross( data, rand );
+	corr.output( data_file_name + "_" + 
+				 rand_file_name + "_drbins" );
+	crosscal = omp_get_wtime(  );
+
+	show_wall_t( "Total time", start, crosscal );
+	show_wall_t( "Preprocessing", start, precomp );
+	show_wall_t( "Auto-correlation", precomp, autocal );
+	show_wall_t( "Cross-correlation", autocal, crosscal );
 	return;
 }
 

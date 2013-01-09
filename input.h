@@ -5,6 +5,7 @@
 #define INPUT_H_
 
 #include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -16,25 +17,34 @@ public:
 	~input(  );
 
 	void read(  );
-	void get_init(  );
+	template <typename T>
+	void find_key( std::string key_name, T & val );
 
-	double lambda;
-	double z_max;
-	double s_max;
-	double s_min;
-	double s_bin;
-	std::string data_file_name;
-	std::string rand_file_name;
-	
 private:
 	std::ifstream fin;
 	std::vector<std::string> item_name;
 	std::vector<std::string> value;
 	int	length;
 	
-	void sort_item(  );
-	void get_general(  );
+	void get_items(  );
 };
+
+// I have to implement this function here since it
+// involves template...
+
+template <typename T>
+void input::find_key( std::string key_name, T & val )
+{
+	for( unsigned i = 0; i < item_name.size(  ); ++ i )
+		if( item_name[ i ].compare( key_name ) == 0 )
+		{
+			std::stringstream ss;
+			ss.str( value[ i ] );
+			ss >> val;
+			return;
+		}
+	throw "Key name in parameter file not found.";
+}
 
 #endif
 

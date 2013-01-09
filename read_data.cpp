@@ -39,9 +39,6 @@ void read_data::read_from_file( std::string file_name,
 	std::ifstream fin( file_name.c_str(  ) );
 	if( !fin )
 		throw "Unable to open source list.";
-	std::cout << "Reading from file \"" << file_name
-			  << "\"...";
-	std::cout.flush(  );
 	
 	galaxy_point temp;
 	std::vector<galaxy_point> & buf = tree.source_list;
@@ -55,8 +52,6 @@ void read_data::read_from_file( std::string file_name,
 		fin >> temp.x >> temp.y >> temp.z;
 		fin.ignore( 64, '\n' );
 	}
-	std::cout << " Done." << std::endl;
-	fin.close(  );
 	return;
 }
 

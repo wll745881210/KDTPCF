@@ -2,6 +2,7 @@
 // For full notice, see "main.cpp" and "COPYING".
 
 #include "correlate.h"
+#include <omp.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,7 +15,7 @@
 
 correlate::correlate(  )
 {
-	
+	this->num_threads = 1;
 }
 
 correlate::~correlate(  )
@@ -32,9 +33,15 @@ void correlate::set_dist_bin( double s_max, double s_min,
 	return;
 }
 
+void correlate::set_num_threads( int num_threads )
+{
+	this->num_threads = num_threads;
+	return;
+}
+
 void correlate::clear(  )
 {
-	cor_type = '\0';
+	auto_cor = false;
 	bin_counts.clear(  );
 	bin_counts.resize( num_bins, 0. );
 	return;
@@ -43,74 +50,45 @@ void correlate::clear(  )
 ////////////////////////////////////////////////////////////
 // Compare trees ( nodes )
 
-void correlate::compare_node_auto
-( const kdtree_node * node0, const kdtree_node * node1 )
-{
-	if( node0 == NULL || node1 == NULL || node0 < node1 )
-		return;
-	if( node0 == node1 )
-	{
-		compare_node_auto( node0->left, node0->right );
-		compare_node_auto( node0->right, node0->left );
-		compare_node_auto( node0->left, node0->left );
-		compare_node_auto( node0->right, node0->right );
-		return;
-	}
-		
-	const int idx_bin = dist_bin( node0, node1 );
-	switch( idx_bin )
-	{
-	case -2:
-		return;
-	case -1:
-		if( node0->num_nodes > node1->num_nodes )
-		{
-			compare_node_auto( node0->left, node1 );
-			compare_node_auto( node1, node0->left );
-			compare_node_auto( node0->right, node1 );		
-			compare_node_auto( node1, node0->right );
-		}
-		else
-		{
-			compare_node_auto( node1->left, node0 );
-			compare_node_auto( node0, node1->left );
-			compare_node_auto( node1->right, node0 );
-			compare_node_auto( node0, node1->right );
-		}
-		break;
-	default:
-		bin_counts[ idx_bin ] += node0->num_nodes
-			* node1->num_nodes;
-	}
-	return;
-}
-
-void correlate::compare_node_cross
+void correlate::compare_node
 ( const kdtree_node * node0, const kdtree_node * node1 )
 {
 	if( node0 == NULL || node1 == NULL )
 		return;
+	if( auto_cor )		// If auto-correlation
+	{
+		if( node0->idx_start >= node1->idx_end )
+			return;
+		if( node0 == node1 )
+		{
+			compare_node( node0, node0->left );
+			compare_node( node0, node0->right );
+			return;
+		}
+	}
 		
 	const int idx_bin = dist_bin( node0, node1 );
 	switch( idx_bin )
 	{
 	case -2:
 		return;
-	case -1:
-		if( node0->num_nodes > node1->num_nodes )
+	case -1:			
+		if( node0->idx_end - node0->idx_start >
+			node1->idx_end - node1->idx_start )
 		{
-			compare_node_cross( node0->left, node1 );
-			compare_node_cross( node0->right, node1 );		
+			compare_node( node0->left, node1 );
+			compare_node( node0->right, node1 );		
 		}
 		else
 		{
-			compare_node_cross( node1->left, node0 );
-			compare_node_cross( node1->right, node0 );
+			compare_node( node0, node1->left );
+			compare_node( node0, node1->right );
 		}
 		break;
 	default:
-		bin_counts[ idx_bin ] += node0->num_nodes
-			* node1->num_nodes;
+		bin_counts[ idx_bin ]
+			+= ( node0->idx_end - node0->idx_start + 1 )
+			* ( node1->idx_end - node1->idx_start + 1 );
 	}
 	return;
 }
@@ -118,11 +96,17 @@ void correlate::compare_node_cross
 void correlate::gen_bin_counts_auto( const kdtree & tree0 )
 {
 	clear(  );
-	cor_type = 'a';
+	auto_cor = true;
 	std::cout << "Conducting auto pair counting... ";
 	std::cout.flush(  );
 	const kdtree_node * root = tree0.get_root_node(  );
-	compare_node_auto( root, root );
+
+	get_node_vec( root );
+	omp_set_num_threads( this->num_threads );
+	#pragma omp parallel for
+	for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
+		compare_node( work_node_vec[ i ], root );
+	
 	std::cout << "Done." << std::endl;
 	return;
 }
@@ -131,12 +115,21 @@ void correlate::gen_bin_counts_cross
 ( const kdtree & tree0, const kdtree & tree1 )
 {
 	clear(  );
-	cor_type = 'c';
+	auto_cor = false;
 	std::cout << "Conducting cross pair counting... ";
 	std::cout.flush(  );
 	const kdtree_node * root0 = tree0.get_root_node(  );
 	const kdtree_node * root1 = tree1.get_root_node(  );
-	compare_node_cross( root0, root1 );
+	
+	std::vector<kdtree_node *> parallel_nodes;
+	parallel_nodes.push_back( root0->left );
+	parallel_nodes.push_back( root0->right );
+
+	omp_set_num_threads( this->num_threads );
+	#pragma omp parallel for
+	for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
+		compare_node( work_node_vec[ i ], root1 );
+	
 	std::cout << "Done." << std::endl;
 	return;
 }
@@ -188,7 +181,7 @@ void correlate::output( std::string file_name )
 {
 	std::ofstream fout( file_name.c_str(  ) );
 	int mult_factor( 0 );
-	if( cor_type == 'a' )
+	if( auto_cor )
 		mult_factor = 2;
 	else
 		mult_factor = 1;
@@ -197,6 +190,38 @@ void correlate::output( std::string file_name )
 		fout << s_min + ds * ( i + 0.5 ) << '\t'
 			 << bin_counts[ i ] * mult_factor << '\n';
 	fout.flush(  );
+	return;
+}
+
+////////////////////////////////////////////////////////////
+// Load balancing
+
+void correlate::get_node_vec( const kdtree_node * root )
+{
+	int max_depth( 0 );
+	if( ( ( num_threads ) & ( num_threads - 1 ) ) == 0 )
+		max_depth = int( log( num_threads ) / log( 2. ) + 0.5 );
+	else
+		max_depth = ceil( log( num_threads ) / log( 2. ) ) + 2.;
+	
+	work_node_vec.clear(  );
+	add_work_node( root, max_depth );
+	return;
+}
+
+void correlate::add_work_node( const kdtree_node * node,
+							   int depth_remain )
+{
+	if( node == NULL )
+		return;
+	
+	if( depth_remain > 0 )
+	{
+		add_work_node( node->left, depth_remain - 1 );
+		add_work_node( node->right, depth_remain - 1 );		
+	}
+	else
+		work_node_vec.push_back( node );
 	return;
 }
 

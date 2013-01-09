@@ -20,15 +20,15 @@ int main( int argn, char * argv[  ] )
 {
 	try
 	{
-		std::string par_file;
+		std::string par_file_name;
 		if( argn == 1 )
-			par_file = "par.txt";
+			par_file_name = "par.txt";
 		else if( argn == 2 )
-			par_file = argv[ 1 ];
+			par_file_name = argv[ 1 ];
 		else
 			throw "Incorrect parameter file.";
 
-		driver( par_file );
+		driver( par_file_name );
 	}
 	catch( const char * err )
 	{

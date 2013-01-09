@@ -2,7 +2,7 @@
 # For full notice, see "main.cpp" and "COPYING".
 
 CC = g++
-Option = -O3 -Wall
+Option = -O3 -fopenmp -Wall
 
 Objs = main.o kdtree.o correlate.o read_data.o input.o driver.o
 

@@ -16,16 +16,16 @@ public:
 	~correlate(  );
 	void set_dist_bin( double s_max, double s_min,
 					   int num_bins );
+	void set_num_threads( int num_threads );
 	void clear(  );
 
 	////////// Compare trees //////////
 private:						// Data
+	int num_threads;
 	std::vector<double> bin_counts;
 private:						// Functions
-	void compare_node_auto( const kdtree_node * node0,
-							const kdtree_node * node1 );
-	void compare_node_cross( const kdtree_node * node0,
-							 const kdtree_node * node1 );
+	void compare_node( const kdtree_node * node0,
+					   const kdtree_node * node1 );
 public:
 	void gen_bin_counts_auto( const kdtree & tree0 );
 	void gen_bin_counts_cross( const kdtree & tree0,
@@ -43,9 +43,18 @@ private:						// Functions
 
 	////////// Output //////////
 private:						// Data
-	char cor_type;
+	bool auto_cor;
 public:
 	void output( std::string file_name );
+
+	
+	////////// Load balancing //////////
+private:						// Data
+	std::vector<const kdtree_node *> work_node_vec;
+private:						// Function
+	void get_node_vec( const kdtree_node * root );
+	void add_work_node( const kdtree_node * node,
+						int depth_remain );
 
 	////////// Algo, math & constants //////////
 private:						// Data

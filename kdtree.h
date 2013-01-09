@@ -21,12 +21,11 @@ struct galaxy_point
 
 struct kdtree_node
 {	
-	kdtree_node * left;
-	kdtree_node * right;
-
-	int num_nodes;
+	kdtree_node * left, * right;
+	int idx_start, idx_end;
 	galaxy_point max, min;
 };
+
 
 class read_data;
 
