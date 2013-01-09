@@ -57,7 +57,14 @@ void driver( const std::string & par_file_name )
 	std::cout << "Done." << std::endl;
 	
 	int num_threads( 0 );
-	read_par.find_key( "num_threads", num_threads );
+	try
+	{
+		read_par.find_key( "num_threads", num_threads );
+	}
+	catch( ... )
+	{
+		num_threads = 1;
+	}
 	std::cout << "Building trees..." << std::flush;
 	omp_set_num_threads( num_threads );
 	#pragma omp parallel sections

@@ -35,7 +35,8 @@ General Public License for more details.
 
    with some simplifications as well as extensions. It now can
    calculate the monopole of pair counting results, and it will be
-   able to give angular dependent results soon.
+   able to give angular dependent results soon. Using OpenMP, it can
+   be run parallely.
 
 
 ======================================================================
@@ -88,6 +89,7 @@ General Public License for more details.
    file_rand            <random_file_name>
    lambda               0.7
    z_max                5
+   num_threads 		8
    ----------------------------------------
    
    Explanations to keys:
@@ -109,6 +111,12 @@ General Public License for more details.
    (4) z_max:
    
    Maximum value of redshift.
+
+   (5) num_threads
+
+   Number of threads with which the program is parallelized. A number
+   that equals to (or slightly greater than) some power of 2 works better.
+   If this key equals to 1 or is missing, the program is run parallely.
 
    --------------------------------------------------
    2.2 Run!
@@ -137,7 +145,7 @@ General Public License for more details.
 
    (1) Calculation of two-point statistics in two dimensions: parallel and perpan;
 
-   (2) Parallelization of pair-counting process;
+   (2) Better load balancing in parallelization;
 
    (3) Speeding up the code with specific manners;
 
