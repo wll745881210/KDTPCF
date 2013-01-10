@@ -16,7 +16,7 @@
 void show_wall_t( std::string title, double start,
 			 double finish )
 {
-	std::cout << std::setw( 30 ) << std::left << title+": "
+	std::cout << std::setw( 25 ) << std::left << title+": "
 			  << std::setw( 8 ) << std::left 
 			  << finish - start << " sec."<< std::endl;
 	return;
@@ -65,6 +65,8 @@ void driver( const std::string & par_file_name )
 	{
 		num_threads = 1;
 	}
+	corr.set_num_threads( num_threads );
+	
 	std::cout << "Building trees..." << std::flush;
 	omp_set_num_threads( num_threads );
 	#pragma omp parallel sections
@@ -77,7 +79,6 @@ void driver( const std::string & par_file_name )
 	precomp = omp_get_wtime(  );
 	std::cout << "Done." << std::endl;
 
-	corr.set_num_threads( num_threads );
 	corr.gen_bin_counts_auto( data );
 	corr.output( data_file_name + "_ddbins" );
 	corr.gen_bin_counts_auto( rand );

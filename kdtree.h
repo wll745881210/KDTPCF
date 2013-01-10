@@ -28,7 +28,7 @@ struct kdtree_node
 
 
 class read_data;
-
+class correlate;
 
 ////////////////////////////////////////////////////////////
 // K-d Tree building
@@ -46,6 +46,7 @@ private:
 private:						// Data
 	std::vector<galaxy_point> source_list;
 	friend class read_data;
+	friend class correlate;
 
 	////////// Tree structure //////////
 private:						// Data	

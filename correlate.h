@@ -22,7 +22,7 @@ public:
 	////////// Compare trees //////////
 private:						// Data
 	int num_threads;
-	std::vector<double> bin_counts;
+	std::vector<unsigned> bin_counts;
 private:						// Functions
 	void compare_node( const kdtree_node * node0,
 					   const kdtree_node * node1 );
@@ -40,6 +40,12 @@ private:						// Functions
 	int dist_bin_val( double d[  ] );
 	int dist_bin( const kdtree_node * node0,
 				  const kdtree_node * node1 );
+
+	////////// Brute-force //////////
+public:						// Functions
+	void brute_force_ac( const kdtree & tree0 );
+	void brute_force_cc( const kdtree & tree0,
+						 const kdtree & tree1 );
 
 	////////// Output //////////
 private:						// Data

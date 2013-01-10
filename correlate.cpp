@@ -61,8 +61,10 @@ void correlate::compare_node
 			return;
 		if( node0 == node1 )
 		{
-			compare_node( node0, node0->left );
-			compare_node( node0, node0->right );
+			compare_node( node0->left, node0->left );
+			compare_node( node0->right, node0->right );
+			compare_node( node0->right, node0->left );
+			compare_node( node0->left, node0->right );
 			return;
 		}
 	}
@@ -97,15 +99,15 @@ void correlate::gen_bin_counts_auto( const kdtree & tree0 )
 {
 	clear(  );
 	auto_cor = true;
-	std::cout << "Conducting auto pair counting... ";
-	std::cout.flush(  );
-	const kdtree_node * root = tree0.get_root_node(  );
+	std::cout << "Auto-corr pair counting... " << std::flush;
 
-	get_node_vec( root );
-	omp_set_num_threads( this->num_threads );
-	#pragma omp parallel for
-	for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
-		compare_node( work_node_vec[ i ], root );
+	const kdtree_node * root = tree0.get_root_node(  );
+	compare_node( root, root );
+	// get_node_vec( root );
+	// omp_set_num_threads( this->num_threads );
+	// #pragma omp parallel for
+	// for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
+	// 	compare_node( work_node_vec[ i ], root );
 	
 	std::cout << "Done." << std::endl;
 	return;
@@ -120,15 +122,16 @@ void correlate::gen_bin_counts_cross
 	std::cout.flush(  );
 	const kdtree_node * root0 = tree0.get_root_node(  );
 	const kdtree_node * root1 = tree1.get_root_node(  );
-	
-	std::vector<kdtree_node *> parallel_nodes;
-	parallel_nodes.push_back( root0->left );
-	parallel_nodes.push_back( root0->right );
+	compare_node( root0, root1 );
 
-	omp_set_num_threads( this->num_threads );
-	#pragma omp parallel for
-	for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
-		compare_node( work_node_vec[ i ], root1 );
+	// std::vector<kdtree_node *> parallel_nodes;
+	// parallel_nodes.push_back( root0->left );
+	// parallel_nodes.push_back( root0->right );
+
+	// omp_set_num_threads( this->num_threads );
+	// #pragma omp parallel for
+	// for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
+	// 	compare_node( work_node_vec[ i ], root1 );
 	
 	std::cout << "Done." << std::endl;
 	return;
@@ -172,6 +175,60 @@ int correlate::dist_bin( const kdtree_node * node0,
 		return -1;
 	else
 		return bin_min;
+}
+
+////////////////////////////////////////////////////////////
+// Brute-force method
+
+void correlate::brute_force_ac( const kdtree & tree0 )
+{
+	clear(  );
+	auto_cor = true;
+	std::cout << "Brute-force AC..." << std::flush;
+	const std::vector<galaxy_point> & src_buf
+		= tree0.source_list;
+
+	double d[ 3 ];
+	for( unsigned i = 0; i < src_buf.size(  ); ++ i )
+		for( unsigned j = i + 1; j < src_buf.size(  ); ++ j )
+		{
+			for( unsigned k = 0; k < 3; ++ k )
+				d[ k ] = src_buf[ i ][ k ] - src_buf[ j ][ k ];
+			const int dist_bin = dist_bin_val( d );
+			if( dist_bin < 0 || dist_bin > num_bins - 1 )
+				continue;
+			
+			bin_counts[ dist_bin ] += 1;
+		}
+	std::cout << "Done." << std::endl;
+	return;
+}
+
+void correlate::brute_force_cc( const kdtree & tree0,
+								const kdtree & tree1 )
+{
+	clear(  );
+	auto_cor = false;
+	std::cout << "Brute-force CC..." << std::flush;
+	const std::vector<galaxy_point> & src_buf0
+		= tree0.source_list;
+	const std::vector<galaxy_point> & src_buf1
+		= tree1.source_list;
+
+	double d[ 3 ];
+	for( unsigned i = 0; i < src_buf0.size(  ); ++ i )
+		for( unsigned j = 0; j < src_buf1.size(  ); ++ j )
+		{
+			for( unsigned k = 0; k < 3; ++ k )
+				d[ k ] = src_buf0[ i ][k] - src_buf1[ j ][k];
+			const int dist_bin = dist_bin_val( d );
+			if( dist_bin < 0 || dist_bin > num_bins - 1 )
+				continue;
+			
+			bin_counts[ dist_bin ] += 1;
+		}
+	std::cout << "Done." << std::endl;
+	return;
 }
 
 ////////////////////////////////////////////////////////////
