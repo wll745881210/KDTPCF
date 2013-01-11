@@ -12,10 +12,8 @@
 
 struct galaxy_point
 {
-	double x, y, z;
+	double x[ 3 ];
 	galaxy_point & operator = ( const galaxy_point & rhs );
-	double & operator[] ( const unsigned & idx );
-	const double & operator[] ( const unsigned & idx ) const;
 	void swap( galaxy_point & rhs );
 };
 
@@ -23,7 +21,8 @@ struct kdtree_node
 {	
 	kdtree_node * left, * right;
 	int idx_start, idx_end;
-	galaxy_point max, min;
+	double max[ 3 ], min[ 3 ];
+	std::vector<galaxy_point> * p_vec;
 };
 
 
@@ -39,6 +38,7 @@ class kdtree
 public:
 	kdtree(  );
 	~kdtree(  );
+	void set_max_depth( int max_depth );
 private:
 	void clear( kdtree_node * & node );
 
@@ -51,7 +51,7 @@ private:						// Data
 	////////// Tree structure //////////
 private:						// Data	
 	kdtree_node * root_node;
-	int max_depth;
+	static const int leaf_node_num = 16;
 private:						// Function
 	kdtree_node * create_node( kdtree_node * parent_node,
 							   int idx_start,

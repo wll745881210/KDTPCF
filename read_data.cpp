@@ -43,13 +43,13 @@ void read_data::read_from_file( std::string file_name,
 	galaxy_point temp;
 	std::vector<galaxy_point> & buf = tree.source_list;
 	buf.clear(  );
-	fin >> temp.x >> temp.y >> temp.z;
+	fin >> temp.x[ 0 ] >> temp.x[ 1 ] >> temp.x[ 2 ];
 	fin.ignore( 64, '\n' );
 	while( ! fin.eof(  ) )
 	{
 		convert( temp );
 		buf.push_back( temp );
-		fin >> temp.x >> temp.y >> temp.z;
+		fin >> temp.x[ 0 ] >> temp.x[ 1 ] >> temp.x[ 2 ];
 		fin.ignore( 64, '\n' );
 	}
 	return;
@@ -107,13 +107,13 @@ double read_data::chi_of_z( const double & z )
 
 void read_data::convert( galaxy_point & src )
 {
-	const double ra  = src.x / rad_to_deg;
-	const double dec = src.y / rad_to_deg;
-	const double rsh = src.z;
+	const double ra  = src.x[ 0 ] / rad_to_deg;
+	const double dec = src.x[ 1 ] / rad_to_deg;
+	const double rsh = src.x[ 2 ];
 	const double chi = chi_of_z( rsh );
-	src.x = cos( dec ) * cos( ra ) * chi;
-	src.y = cos( dec ) * sin( ra ) * chi;
-	src.z = sin( dec ) * chi;
+	src.x[ 0 ] = cos( dec ) * cos( ra ) * chi;
+	src.x[ 1 ] = cos( dec ) * sin( ra ) * chi;
+	src.x[ 2 ] = sin( dec ) * chi;
 	return;
 }
 

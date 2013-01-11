@@ -14,8 +14,8 @@ class correlate
 public:
 	correlate(  );
 	~correlate(  );
-	void set_dist_bin( double s_max, double s_min,
-					   int num_bins );
+	void set_dist_bin
+	( double s_max, double s_min, int num_bins );
 	void set_num_threads( int num_threads );
 	void clear(  );
 
@@ -26,6 +26,8 @@ private:						// Data
 private:						// Functions
 	void compare_node( const kdtree_node * node0,
 					   const kdtree_node * node1 );
+	void brute_force_sec( const kdtree_node * node0,
+						  const kdtree_node * node1 );
 public:
 	void gen_bin_counts_auto( const kdtree & tree0 );
 	void gen_bin_counts_cross( const kdtree & tree0,
@@ -37,15 +39,9 @@ private:						// Data
 	double ds;
 	int num_bins;
 private:						// Functions
-	int dist_bin_val( double d[  ] );
+	inline int dist_bin_val( double d[  ] );
 	int dist_bin( const kdtree_node * node0,
 				  const kdtree_node * node1 );
-
-	////////// Brute-force //////////
-public:						// Functions
-	void brute_force_ac( const kdtree & tree0 );
-	void brute_force_cc( const kdtree & tree0,
-						 const kdtree & tree1 );
 
 	////////// Output //////////
 private:						// Data
@@ -65,7 +61,7 @@ private:						// Function
 	////////// Algo, math & constants //////////
 private:						// Data
 	static const double nearly0 = 1e-6;
-	
+	int num_total_cal;
 };
 
 #endif

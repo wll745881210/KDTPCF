@@ -13,9 +13,8 @@
 galaxy_point & galaxy_point::operator =
 ( const galaxy_point & rhs )
 {
-	this->x = rhs.x;
-	this->y = rhs.y;
-	this->z = rhs.z;
+	for( int i = 0; i < 3; ++ i )
+		this->x[ i ] = rhs.x[ i ];
 	return * this;
 }
 
@@ -23,45 +22,13 @@ void galaxy_point::swap( galaxy_point & rhs )
 {
 	for( unsigned i = 0; i < 3; ++ i )
 	{
-		const double temp = ( *this )[ i ];
-		( *this )[ i ] = rhs[ i ];
-		rhs[ i ] = temp;
+		const double temp = this->x[ i ];
+		this->x[ i ] = rhs.x[ i ];
+		rhs.x[ i ] = temp;
 	}
 
 	return;
 }
-
-double & galaxy_point::operator[]( const unsigned & idx )
-{
-	switch( idx )
-	{
-	case 0:
-		return x;
-	case 1:
-		return y;
-	case 2:
-		return z;
-	default:
-		throw "Index exceeds boundary for a galaxy node.";
-	}
-}
-
-const double & galaxy_point::operator[]
-( const unsigned & idx ) const
-{
-	switch( idx )
-	{
-	case 0:
-		return x;
-	case 1:
-		return y;
-	case 2:
-		return z;
-	default:
-		throw "Index exceeds boundary for a galaxy node.";
-	}
-}
-
 
 ////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
@@ -69,7 +36,6 @@ const double & galaxy_point::operator[]
 kdtree::kdtree(  )
 {
 	root_node = NULL;
-	max_depth = 0;
 }
 
 kdtree::~kdtree(  )
@@ -94,24 +60,31 @@ void kdtree::clear( kdtree_node * & node )
 
 kdtree_node * kdtree::create_node
 ( kdtree_node * parent_node, int idx_start, int idx_end,
-  int depth )
+  int depth ) 
 {
 	if( idx_end < idx_start )
 		return NULL;
 	
 	kdtree_node * current_node = new kdtree_node;
-	if( depth > max_depth )
-		max_depth = depth;
-
 	const int axis = depth % 3;
 	const int idx_median
 		= select_median( idx_start, idx_end, axis );
 	current_node->idx_start = idx_start;
 	current_node->idx_end   = idx_end;
-	current_node->max    = coord_max;
-	current_node->min    = coord_min;
-
-	if( current_node->idx_end > current_node->idx_start )
+	for( int i = 0; i < 3; ++ i )
+	{		
+		current_node->max[ i ] = coord_max.x[ i ];
+		current_node->min[ i ] = coord_min.x[ i ];
+	}
+	current_node->p_vec = & source_list;
+	
+	if( current_node->idx_end - current_node->idx_start
+		<= leaf_node_num )
+	{
+		current_node->left  = NULL;
+		current_node->right = NULL;
+	}
+	else
 	{		
 		current_node->left
 			= create_node( current_node, idx_start,
@@ -119,11 +92,6 @@ kdtree_node * kdtree::create_node
 		current_node->right
 			= create_node( current_node, idx_median
 						   + 1, idx_end, depth + 1  );
-	}
-	else
-	{
-		current_node->left = NULL;
-		current_node->right = NULL;
 	}
 	return current_node;
 }
@@ -139,8 +107,8 @@ void kdtree::display_node( kdtree_node * node, int depth )
 		std::cout << "  ";
 	std::cout << "|__"
 			  << node->idx_end- node->idx_start + 1 << ' '
-			  << node->max.x << ' ' << node->max.y << ' '
-			  << node->max.z << '\n';
+			  << node->max[ 0 ] << ' ' << node->max[ 1 ] << ' '
+			  << node->max[ 2 ] << '\n';
 	
 	display_node( node->left, depth + 1 );
 	display_node( node->right, depth + 1 );
@@ -176,10 +144,10 @@ void kdtree::max_min_compare( int idx )
 	galaxy_point & current_point = source_list[ idx ];
 	for( unsigned i = 0; i < 3; ++ i )
 	{
-		if( current_point[ i ] > coord_max[ i ] )
-			coord_max[ i ] = current_point[ i ];
-		if( current_point[ i ] < coord_min[ i ] )
-			coord_min[ i ] = current_point[ i ];
+		if( current_point.x[ i ] > coord_max.x[ i ] )
+			coord_max.x[ i ] = current_point.x[ i ];
+		if( current_point.x[ i ] < coord_min.x[ i ] )
+			coord_min.x[ i ] = current_point.x[ i ];
 	}
 
 	return;
@@ -204,8 +172,8 @@ int kdtree::locate_pivot( int idx_start, int idx_end,
 		if( ! max_min_lock )
 			max_min_compare( i );
 		
-		if( source_list[ i ][ axis ]
-			<= source_list[ idx_end ][ axis ] )
+		if( source_list[ i ].x[ axis ]
+			<= source_list[ idx_end ].x[ axis ] )
 		{
 			source_list[ i ].swap(source_list[ idx_store ]);
 			++ idx_store;			

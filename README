@@ -143,7 +143,8 @@ General Public License for more details.
    
    We will add the following things to the code:
 
-   (1) Calculation of two-point statistics in two dimensions: parallel and perpan;
+   (1) Calculation of two-point statistics in two dimensions: parallel
+   and perpandicular to the line of sight;
 
    (2) Better load balancing in parallelization;
 
