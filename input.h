@@ -12,21 +12,21 @@
 class input
 {
 public:
-	input(  );
-	input( const std::string & file_name );
-	~input(  );
+    input(  );
+    input( const std::string & file_name );
+    ~input(  );
 
-	void read(  );
-	template <typename T>
-	void find_key( std::string key_name, T & val );
+    void read(  );
+    template <typename T>
+    void find_key( std::string key_name, T & val );
 
 private:
-	std::ifstream fin;
-	std::vector<std::string> item_name;
-	std::vector<std::string> value;
-	int	length;
-	
-	void get_items(  );
+    std::ifstream fin;
+    std::vector<std::string> item_name;
+    std::vector<std::string> value;
+    int    length;
+    
+    void get_items(  );
 };
 
 // I have to implement this function here since it
@@ -35,15 +35,15 @@ private:
 template <typename T>
 void input::find_key( std::string key_name, T & val )
 {
-	for( unsigned i = 0; i < item_name.size(  ); ++ i )
-		if( item_name[ i ].compare( key_name ) == 0 )
-		{
-			std::stringstream ss;
-			ss.str( value[ i ] );
-			ss >> val;
-			return;
-		}
-	throw "Key name in parameter file not found.";
+    for( unsigned i = 0; i < item_name.size(  ); ++ i )
+        if( item_name[ i ].compare( key_name ) == 0 )
+        {
+            std::stringstream ss;
+            ss.str( value[ i ] );
+            ss >> val;
+            return;
+        }
+    throw "Key name in parameter file not found.";
 }
 
 #endif

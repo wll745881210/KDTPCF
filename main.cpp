@@ -18,24 +18,24 @@
 
 int main( int argn, char * argv[  ] )
 {
-	try
-	{
-		std::string par_file_name;
-		if( argn == 1 )
-			par_file_name = "par.txt";
-		else if( argn == 2 )
-			par_file_name = argv[ 1 ];
-		else
-			throw "Incorrect parameter file.";
+    try
+    {
+        std::string par_file_name;
+        if( argn == 1 )
+            par_file_name = "par.txt";
+        else if( argn == 2 )
+            par_file_name = argv[ 1 ];
+        else
+            throw "Incorrect parameter file.";
 
-		driver( par_file_name );
-	}
-	catch( const char * err )
-	{
-		std::cerr << "\nError: " << err << std::endl;
-	}
-	
-	return 0;
+        driver( par_file_name );
+    }
+    catch( const char * err )
+    {
+        std::cerr << "\nError: " << err << std::endl;
+    }
+    
+    return 0;
 }
 
 

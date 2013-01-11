@@ -12,17 +12,17 @@
 
 struct galaxy_point
 {
-	double x[ 3 ];
-	galaxy_point & operator = ( const galaxy_point & rhs );
-	void swap( galaxy_point & rhs );
+    double x[ 3 ];
+    galaxy_point & operator = ( const galaxy_point & rhs );
+    void swap( galaxy_point & rhs );
 };
 
 struct kdtree_node
-{	
-	kdtree_node * left, * right;
-	int idx_start, idx_end;
-	double max[ 3 ], min[ 3 ];
-	std::vector<galaxy_point> * p_vec;
+{    
+    kdtree_node * left, * right;
+    int idx_start, idx_end;
+    double max[ 3 ], min[ 3 ];
+    std::vector<galaxy_point> * p_vec;
 };
 
 
@@ -34,47 +34,47 @@ class correlate;
 
 class kdtree
 {
-	////////// Con/Destructor & Initializer //////////
+    ////////// Con/Destructor & Initializer //////////
 public:
-	kdtree(  );
-	~kdtree(  );
-	void set_max_depth( int max_depth );
+    kdtree(  );
+    ~kdtree(  );
+    void set_max_depth( int max_depth );
 private:
-	void clear( kdtree_node * & node );
+    void clear( kdtree_node * & node );
 
-	////////// Point data buffer //////////
-private:						// Data
-	std::vector<galaxy_point> source_list;
-	friend class read_data;
-	friend class correlate;
+    ////////// Point data buffer //////////
+private:                        // Data
+    std::vector<galaxy_point> source_list;
+    friend class read_data;
+    friend class correlate;
 
-	////////// Tree structure //////////
-private:						// Data	
-	kdtree_node * root_node;
-	static const int leaf_node_num = 16;
-private:						// Function
-	kdtree_node * create_node( kdtree_node * parent_node,
-							   int idx_start, int idx_end,
-							   int depth );
-	void display_node( kdtree_node * node, int depth );
+    ////////// Tree structure //////////
+private:                        // Data    
+    kdtree_node * root_node;
+    static const int leaf_node_num = 16;
+private:                        // Function
+    kdtree_node * create_node( kdtree_node * parent_node,
+                               int idx_start, int idx_end,
+                               int depth );
+    void display_node( kdtree_node * node, int depth );
 public:
-	void build_tree(  );
-	const kdtree_node * get_root_node(  ) const;
-	void display(  );
-	
-	////////// Median search //////////
-private:						// Data
-	bool max_min_lock;
-	galaxy_point coord_max, coord_min;
-private:						// Function
-	void max_min_compare( int idx );
-	void max_min_init( int idx_start );
-	int locate_pivot( int idx_start, int idx_end,
-					  int idx_pivot, int axis );
-	void select_kth( int k, int idx_start,
-					 int idx_end, int axis );
-	int select_median( int idx_start,
-					   int idx_end, int axis );
+    void build_tree(  );
+    const kdtree_node * get_root_node(  ) const;
+    void display(  );
+    
+    ////////// Median search //////////
+private:                        // Data
+    bool max_min_lock;
+    galaxy_point coord_max, coord_min;
+private:                        // Function
+    void max_min_compare( int idx );
+    void max_min_init( int idx_start );
+    int locate_pivot( int idx_start, int idx_end,
+                      int idx_pivot, int axis );
+    void select_kth( int k, int idx_start,
+                     int idx_end, int axis );
+    int select_median( int idx_start,
+                       int idx_end, int axis );
 };
 
 #endif
