@@ -8,5 +8,5 @@ file_data 	QSO_cat_L0_c0.txt
 file_rand 	QSO_ran_L0_c0.txt
 lambda 		0.7
 z_max 		5
-num_threads 	2
+num_threads 	1
 

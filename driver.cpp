@@ -6,7 +6,6 @@
 #include "correlate.h"
 #include "read_data.h"
 #include "input.h"
-#include "parallel.h"
 #include <iostream>
 #include <iomanip>
 #include <string>
@@ -15,7 +14,7 @@
 #include <cmath>
 
 void show_wall_t( std::string title, double start,
-				  double finish )
+			 double finish )
 {
 	std::cout << std::setw( 25 ) << std::left << title+": "
 			  << std::setw( 8 ) << std::left 
@@ -34,7 +33,7 @@ void driver( const std::string & par_file_name )
 	
 	kdtree data;
 	kdtree rand;
-	parallel para_corr;
+	correlate corr;
 	read_data read;
 
 	double lambda( 0. ), z_max( 0. );
@@ -42,6 +41,13 @@ void driver( const std::string & par_file_name )
 	read_par.find_key( "z_max", z_max );
 	read.set_cosmology( lambda, z_max );
 	
+	double s_max( 0. ), s_min( 0. );
+	int s_bin( 0 );
+	read_par.find_key( "s_max", s_max );
+	read_par.find_key( "s_min", s_min );
+	read_par.find_key( "s_bin", s_bin );
+	corr.set_dist_bin( s_max, s_min, s_bin );
+
 	std::string data_file_name, rand_file_name;
 	read_par.find_key( "file_data", data_file_name );
 	read_par.find_key( "file_rand", rand_file_name );	
@@ -50,8 +56,19 @@ void driver( const std::string & par_file_name )
 	read.read_from_file( rand_file_name, rand );
 	std::cout << "Done." << std::endl;
 	
+	int num_threads( 0 );
+	try
+	{
+		read_par.find_key( "num_threads", num_threads );
+	}
+	catch( ... )
+	{
+		num_threads = 1;
+	}
+	corr.set_num_threads( num_threads );
+	
 	std::cout << "Building trees..." << std::flush;
-	omp_set_num_threads( 2 );
+	omp_set_num_threads( num_threads );
 	#pragma omp parallel sections
 	{
 		#pragma omp section
@@ -61,24 +78,14 @@ void driver( const std::string & par_file_name )
 	}
 	precomp = omp_get_wtime(  );
 	std::cout << "Done." << std::endl;
-	
-	int num_threads( 0 );
-	read_par.find_key( "num_threads", num_threads );
-	para_corr.set_num_threads( num_threads );
-	double s_max( 0. ), s_min( 0. );
-	int s_bin( 0 );
-	read_par.find_key( "s_max", s_max );
-	read_par.find_key( "s_min", s_min );
-	read_par.find_key( "s_bin", s_bin );
-	para_corr.set_dist_bin( s_max, s_min, s_bin );
-	
-	para_corr.cal_corr( data, data );
-	para_corr.output( data_file_name + "_ddbins" );
-	para_corr.cal_corr( rand, rand );
-	para_corr.output( rand_file_name + "_rrbins" );
+
+	corr.gen_bin_counts_auto( data );
+	corr.output( data_file_name + "_ddbins" );
+	corr.gen_bin_counts_auto( rand );
+	corr.output( rand_file_name + "_rrbins" );
 	autocal = omp_get_wtime(  );
-	para_corr.cal_corr( data, rand );
-	para_corr.output( data_file_name + "_" + 
+	corr.gen_bin_counts_cross( data, rand );
+	corr.output( data_file_name + "_" + 
 				 rand_file_name + "_drbins" );
 	crosscal = omp_get_wtime(  );
 
@@ -86,6 +93,7 @@ void driver( const std::string & par_file_name )
 	show_wall_t( "Preprocessing", start, precomp );
 	show_wall_t( "Auto-correlation", precomp, autocal );
 	show_wall_t( "Cross-correlation", autocal, crosscal );
+
 	return;
 }
 

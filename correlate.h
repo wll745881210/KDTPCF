@@ -14,42 +14,54 @@ class correlate
 public:
 	correlate(  );
 	~correlate(  );
+	void set_dist_bin
+	( double s_max, double s_min, int num_bins );
+	void set_num_threads( int num_threads );
 	void clear(  );
-	static void static_clear(  );
 
 	////////// Compare trees //////////
 private:						// Data
+	int num_threads;
 	std::vector<unsigned> bin_counts;
 private:						// Functions
+	void compare_node( const kdtree_node * node0,
+					   const kdtree_node * node1 );
 	void brute_force_sec( const kdtree_node * node0,
 						  const kdtree_node * node1 );
 public:
-	void compare_node( const kdtree_node * node0,
-					   const kdtree_node * node1 );
-	void cal_corr( const kdtree & tree0,
-				   const kdtree & tree1 );
+	void gen_bin_counts_auto( const kdtree & tree0 );
+	void gen_bin_counts_cross( const kdtree & tree0,
+							   const kdtree & tree1 );
 
 	////////// Distance bin index //////////
 private:						// Data
-	static double s_max, s_min;
-	static double ds, s_min_ds;
-	static int num_bins;
+	double s_max, s_min;
+	double ds;
+	int num_bins;
 private:						// Functions
-	static int dist_bin_val( double d[  ] );
+	inline int dist_bin_val( double d[  ] );
 	int dist_bin( const kdtree_node * node0,
 				  const kdtree_node * node1 );
-public:
-	static void set_dist_bin
-	( double s_max_src, double s_min_src, int num_bins_src );
-	
 
 	////////// Output //////////
-private:
-	static std::vector<unsigned> bin_counts_total;
+private:						// Data
+	bool auto_cor;
 public:
-	static bool auto_cor;
-	void add_to_total(  );
-	static void output( std::string file_name );	
+	void output( std::string file_name );
+
+	
+	////////// Load balancing //////////
+private:						// Data
+	std::vector<const kdtree_node *> work_node_vec;
+private:						// Function
+	void get_node_vec( const kdtree_node * root );
+	void add_work_node( const kdtree_node * node,
+						int depth_remain );
+
+	////////// Algo, math & constants //////////
+private:						// Data
+	static const double nearly0 = 1e-6;
+	int num_total_cal;
 };
 
 #endif

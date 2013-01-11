@@ -2,6 +2,7 @@
 // For full notice, see "main.cpp" and "COPYING".
 
 #include "correlate.h"
+#include <omp.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -10,22 +11,11 @@
 #include <ctime>
 
 ////////////////////////////////////////////////////////////
-// Static variables
-
-std::vector<unsigned> correlate::bin_counts_total;
-double correlate::s_max;
-double correlate::s_min;
-double correlate::ds;
-double correlate::s_min_ds;
-int  correlate::num_bins;
-bool correlate::auto_cor;
-
-////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
 
 correlate::correlate(  )
 {
-
+	this->num_threads = 1;
 }
 
 correlate::~correlate(  )
@@ -33,17 +23,29 @@ correlate::~correlate(  )
 	
 }
 
-void correlate::clear(  )
+void correlate::set_dist_bin( double s_max, double s_min,
+							  int num_bins )
 {
-	bin_counts.clear(  );
-	bin_counts.resize( num_bins, 0 );
+	this->s_max    = s_max;
+	this->s_min    = s_min;
+	this->num_bins = num_bins;
+	this->ds = ( s_max - s_min ) / double ( num_bins - 1 );
 	return;
 }
 
-void correlate::static_clear(  )
+void correlate::set_num_threads( int num_threads )
 {
-	bin_counts_total.clear(  );
-	bin_counts_total.resize( num_bins, 0 );
+	this->num_threads = num_threads;
+	return;
+}
+
+void correlate::clear(  )
+{
+	auto_cor = false;
+	bin_counts.clear(  );
+	bin_counts.resize( num_bins + 10, 0. );
+	num_total_cal = 0;
+	return;
 }
 
 ////////////////////////////////////////////////////////////
@@ -54,49 +56,62 @@ void correlate::brute_force_sec
 {
 	const std::vector<galaxy_point> & vec0 = *(node0->p_vec);
 	const std::vector<galaxy_point> & vec1 = *(node1->p_vec);
-	double d_min[ 3 ], d_max[ 3 ], d0( 0. ), d1( 0. );
-	int inner_start = node1->idx_start;
-	int inner_end   = node1->idx_end;
-	const bool not_same_node( node0 != node1 );
+	double d[ 3 ], e[ 3 ], d0( 0. ), d1( 0. );
+	const int inner_start = node1->idx_start;
+	const int inner_end = node1->idx_end;
 
-	for( int i = node0->idx_start; i <= node0->idx_end; ++ i )
+	if( node0 == node1 )
 	{
-		if( not_same_node )
+		for( int i = node0->idx_start;
+			 i <= node0->idx_end; ++ i )
+			for( int j = i + 1;
+				 j <= inner_end; ++ j)
+			{
+				for( int k = 0; k < 3; ++ k )
+					d[ k ] = vec0[ i ].x[ k ] - vec0[ j ].x[ k ];
+				const int bin_idx = dist_bin_val( d );
+				if( bin_idx < 0 || bin_idx > num_bins - 1 )
+					continue;
+				++ bin_counts[ bin_idx ];
+			}
+	}
+	else
+	{
+		for( int i = node0->idx_start;
+			 i <= node0->idx_end; ++ i )
 		{
 			for( int k = 0; k < 3; ++ k )
 			{
 				d0 = vec0[ i ].x[ k ] - node1->max[ k ];
 				d1 = vec0[ i ].x[ k ] - node1->min[ k ];
 				const bool min_is_d0 = fabs( d0 ) < fabs( d1 );
-				d_max[ k ] = min_is_d0 ? d1 : d0;
+				e[ k ] = min_is_d0 ? d1 : d0;
 				if( d0 * d1 > 0 )
-					d_min[ k ] = min_is_d0 ? d0 : d1;
+					d[ k ] = min_is_d0 ? d0 : d1;
 				else
-					d_min[ k ] = 0.;
+					d[ k ] = 0.;
 			}
-			const int min_box_idx = dist_bin_val( d_min );
-			if( min_box_idx > num_bins - 1 )
+			const int min_box_idx = dist_bin_val( d );
+			const int max_box_idx = dist_bin_val( e );
+			if( min_box_idx > num_bins - 1 || max_box_idx < 0 )
 				continue;
 			
-			if( min_box_idx == dist_bin_val( d_max ) )
+			if( min_box_idx == max_box_idx )
 			{
 				bin_counts[ min_box_idx ] += node1->idx_end
 					- node1->idx_start + 1;
 				continue;
 			}
-		}
-		else 
-			inner_start = i + 1;
-		
-		for( int j = inner_start; j <= inner_end; ++ j )
-		{
-			for( int k = 0; k < 3; ++ k )
-				d_min[ k ]
-					= vec0[ i ].x[ k ] - vec1[ j ].x[ k ];
-			const int bin_idx = dist_bin_val( d_min );
-			if( bin_idx < 0 || bin_idx > num_bins - 1 )
-				continue;
-			++ bin_counts[ bin_idx ];
+			for( int j = inner_start; j <= inner_end; ++ j)
+			{
+				for( int k = 0; k < 3; ++ k )
+					d[ k ] = vec0[ i ].x[ k ] - vec1[ j ].x[ k ];
+
+				const int bin_idx = dist_bin_val( d );				
+				if( bin_idx < 0 || bin_idx > num_bins - 1 )
+					continue;
+				++ bin_counts[ bin_idx ];
+			}
 		}
 	}
 	return;
@@ -154,32 +169,50 @@ void correlate::compare_node
 	return;
 }
 
-void correlate::cal_corr( const kdtree & tree0,
-						   const kdtree & tree1 )
+void correlate::gen_bin_counts_auto( const kdtree & tree0 )
 {
+	clear(  );
+	auto_cor = true;
+	std::cout << "Auto-corr... " << std::flush;
+
+	const kdtree_node * root = tree0.get_root_node(  );
+	get_node_vec( root );
+	omp_set_num_threads( this->num_threads );
+	#pragma omp parallel for
+	for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
+		compare_node( work_node_vec[ i ], root );
+	std::cout << "Done." << std::endl;
+	return;
+}
+
+void correlate::gen_bin_counts_cross
+( const kdtree & tree0, const kdtree & tree1 )
+{
+	clear(  );
 	auto_cor = false;
-	static_clear(  );
+	std::cout << "Cross-corr... " << std::flush;
+
 	const kdtree_node * root0 = tree0.get_root_node(  );
 	const kdtree_node * root1 = tree1.get_root_node(  );
-	if( root0 == root1 )
-		auto_cor = true;	
-	std::cout << ( auto_cor ? "Auto":"Cross" )
-			  << "-corr... " << std::flush;
-	compare_node( root0, root1 );
+	get_node_vec( root0 );
+	omp_set_num_threads( this->num_threads );
+	#pragma omp parallel for
+	for( int i = 0; i < int( work_node_vec.size(  ) ); ++ i )
+		compare_node( work_node_vec[ i ], root1 );
 	
-	std::cout << "Done." << std::endl;
+	std::cout << "Done. " << std::endl;
 	return;
 }
 
 ////////////////////////////////////////////////////////////
 // Distance bin index calculation
 
-int correlate::dist_bin_val( double d[  ] )
+inline int correlate::dist_bin_val( double d[  ] )
 {
 	const double s
 		= sqrt( d[ 0 ]*d[ 0 ] + d[ 1 ]*d[ 1 ]
-				+ d[ 2 ]*d[ 2 ] ) / ds;
-	return s - s_min_ds;
+				+ d[ 2 ]*d[ 2 ] ) - s_min;
+	return int( s / ds );
 }
 
 int correlate::dist_bin( const kdtree_node * node0,
@@ -206,28 +239,8 @@ int correlate::dist_bin( const kdtree_node * node0,
 	return bin_min == bin_max ? bin_min : -1;
 }
 
-void correlate::set_dist_bin
-( double s_max_src, double s_min_src, int num_bins_src )
-{
-	s_max    = s_max_src;
-	s_min    = s_min_src;
-	num_bins = num_bins_src;
-	ds = ( s_max - s_min ) / double ( num_bins - 1 );
-	s_min_ds = s_min / ds;
-	bin_counts_total.clear(  );
-	bin_counts_total.resize( num_bins, 0 );
-	return;
-}
-
 ////////////////////////////////////////////////////////////
 // Output bin counting results
-
-void correlate::add_to_total(  )
-{
-	for( int i = 0; i < num_bins; ++ i )
-		bin_counts_total[ i ] += bin_counts[ i ];
-	return;
-}
 
 void correlate::output( std::string file_name )
 {
@@ -240,8 +253,40 @@ void correlate::output( std::string file_name )
 
 	for( int i = 0; i < num_bins; ++ i )
 		fout << s_min + ds * ( i + 0.5 ) << '\t'
-			 << bin_counts_total[ i ] * mult_factor << '\n';
+			 << bin_counts[ i ] * mult_factor << '\n';
 	fout.flush(  );
+	return;
+}
+
+////////////////////////////////////////////////////////////
+// Load balancing
+
+void correlate::get_node_vec( const kdtree_node * root )
+{
+	int max_depth( 0 );
+	if( ( ( num_threads ) & ( num_threads - 1 ) ) == 0 )
+		max_depth = int( log( num_threads ) / log( 2. ) + 0.5 );
+	else
+		max_depth = ceil( log( num_threads ) / log( 2. ) ) + 2.;
+	
+	work_node_vec.clear(  );
+	add_work_node( root, max_depth );
+	return;
+}
+
+void correlate::add_work_node( const kdtree_node * node,
+							   int depth_remain )
+{
+	if( node == NULL )
+		return;
+	
+	if( depth_remain > 0 )
+	{
+		add_work_node( node->left, depth_remain - 1 );
+		add_work_node( node->right, depth_remain - 1 );		
+	}
+	else
+		work_node_vec.push_back( node );
 	return;
 }
 
