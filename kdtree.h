@@ -54,8 +54,8 @@ private:						// Data
 	static const int leaf_node_num = 16;
 private:						// Function
 	kdtree_node * create_node( kdtree_node * parent_node,
-							   int idx_start,
-							   int idx_end, int depth );
+							   int idx_start, int idx_end,
+							   int depth );
 	void display_node( kdtree_node * node, int depth );
 public:
 	void build_tree(  );

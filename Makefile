@@ -4,7 +4,8 @@
 CC = g++
 Option = -O3 -fopenmp -Wall
 
-Objs = main.o kdtree.o correlate.o read_data.o input.o driver.o
+Objs = main.o kdtree.o correlate.o read_data.o input.o \
+	driver.o parallel.o
 
 Out_file = test_corr
 
@@ -28,4 +29,7 @@ input.o : input.cpp input.h
 
 driver.o : driver.cpp driver.h
 	$(CC) $(Option) -c -o driver.o driver.cpp
+
+parallel.o : parallel.cpp parallel.h
+	$(CC) $(Option) -c -o parallel.o parallel.cpp
 

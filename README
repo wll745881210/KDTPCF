@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------+
 |             Two-point correlator with k-d tree method              |
 |            Author: Lile Wang   Email: lilewang@lbl.gov             |
-|                           Jan 6 2013                               |
+|                           Jan 11 2013                              |
 +--------------------------------------------------------------------+
 
 
@@ -115,8 +115,9 @@ General Public License for more details.
    (5) num_threads
 
    Number of threads with which the program is parallelized. A number
-   that equals to (or slightly greater than) some power of 2 works better.
-   If this key equals to 1 or is missing, the program is run parallely.
+   that equals to (or slightly greater than) some power of 2 works
+   better.  If this key equals to 1, the program is run as a serial
+   code.
 
    --------------------------------------------------
    2.2 Run!
@@ -148,7 +149,7 @@ General Public License for more details.
 
    (2) Better load balancing in parallelization;
 
-   (3) Speeding up the code with specific manners;
+   (3) Speeding up the code!
 
    (4) Jack-knife method for error estimation.
 
