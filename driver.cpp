@@ -71,6 +71,11 @@ void driver( const std::string & par_file_name )
     read_par.find_key( "s_min", s_min );
     read_par.find_key( "s_bin", s_bin );
     para_corr.set_dist_bin( s_max, s_min, s_bin );
+
+	int is_2d_cor( 0 );
+	read_par.find_key( "get_2d_corr", is_2d_cor );
+	if( is_2d_cor > 0 )
+		para_corr.set_2d_cor(  );
     
     para_corr.cal_corr( data, data );
     para_corr.output( data_file_name + "_ddbins" );

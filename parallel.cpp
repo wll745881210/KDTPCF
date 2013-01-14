@@ -9,7 +9,7 @@
 
 parallel::parallel(  )
 {
-    
+    is_2d_cor = false;
 }
 
 parallel::~parallel(  )
@@ -43,7 +43,7 @@ void parallel::add_work_node( const kdtree_node * node,
     if( node == NULL )
         return;
     
-    if( depth_remain > 0 )
+    if( depth_remain > 0 && node->left != NULL )
     {
         add_work_node( node->left, depth_remain - 1 );
         add_work_node( node->right, depth_remain - 1 );        
@@ -70,14 +70,21 @@ void parallel::set_dist_bin( double s_max, double s_min,
 ////////////////////////////////////////////////////////////
 // Conduct calculation
 
+void parallel::set_2d_cor(  )
+{
+	is_2d_cor = true;
+	return;
+}
+
 void parallel::cal_corr( const kdtree & tree0,
                          const kdtree & tree1 )
 {
+	correlate::is_2d_cor = this->is_2d_cor;
     correlate::static_clear(  );
     const kdtree_node * root0 = tree0.get_root_node(  );
     const kdtree_node * root1 = tree1.get_root_node(  );
-    correlate::auto_cor = ( root0 == root1 );
-    std::cout << ( correlate::auto_cor ? "Auto":"Cross" )
+    correlate::is_auto_cor = ( root0 == root1 );
+    std::cout << ( correlate::is_auto_cor ? "Auto":"Cross" )
               << "-corr... " << std::flush;
     
     get_node_vec( root0 );

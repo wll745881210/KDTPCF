@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------+
 |             Two-point correlator with k-d tree method              |
 |            Author: Lile Wang   Email: lilewang@lbl.gov             |
-|                           Jan 11 2013                              |
+|                           Jan 14 2013                              |
 +--------------------------------------------------------------------+
 
 
@@ -89,6 +89,7 @@ General Public License for more details.
    file_rand            <random_file_name>
    lambda               0.7
    z_max                5
+   get_2d_corr 		1
    num_threads 		8
    ----------------------------------------
    
@@ -112,7 +113,12 @@ General Public License for more details.
    
    Maximum value of redshift.
 
-   (5) num_threads
+   (5) get_2d_corr:
+
+   If set to a positive integer, this program will give 2-D
+   correlation calculation results. 
+
+   (6) num_threads
 
    Number of threads with which the program is parallelized. A number
    that equals to (or slightly greater than) some power of 2 works
@@ -134,8 +140,13 @@ General Public License for more details.
 
    (3) "<data_file_name>_<random_file_name>_drbins".
 
-   The first column in each file indicates the centers of distance
-   bins, while the second is the number of pairs.
+   For 1-D correlation: The first column in each file indicates the
+   centers of distance bins, while the second is the number of pairs.
+
+   For 2-D correlation: First column for r_p (separation component
+   perpandicular to the line of sight), second for pi (separation
+   component parallel to the line of sight), and third for bin
+   counting results.
 
 
 ======================================================================
@@ -143,12 +154,5 @@ General Public License for more details.
    
    We will add the following things to the code:
 
-   (1) Calculation of two-point statistics in two dimensions: parallel
-   and perpandicular to the line of sight;
-
-   (2) Better load balancing in parallelization;
-
-   (3) Speeding up the code!
-
-   (4) Jack-knife method for error estimation.
+   (1) Jack-knife method for error estimation.
 

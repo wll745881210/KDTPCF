@@ -29,7 +29,10 @@ public:
                        int num_bins );
 
     ////////// Conduct calculation //////////
+private:
+	bool is_2d_cor;
 public:
+	void set_2d_cor(  );
     void cal_corr( const kdtree & tree0,
                    const kdtree & tree1 );
     void output( std::string file_name );
