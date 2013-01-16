@@ -10,5 +10,5 @@ file_rand 	LRG_ran_L0_c0.txt
 lambda 		0.7
 z_max 		5
 get_2d_corr 	1
-num_threads 	1
+num_threads 	2
 

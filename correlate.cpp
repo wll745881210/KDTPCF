@@ -113,10 +113,12 @@ void correlate::brute_force
 				if( s_idx > s_bin - 1 )
 					continue;
 				const double los_2 = dot( d_max, d_max );
-				const double mu = dot( d_max, d_min )
+				const double mu = fabs( dot( d_max, d_min ) )
 					/ sqrt( los_2 * s_2 );
-				const int theta_idx = acos( fabs( mu ) )
-					* theta_bin / pi_2;
+				if( mu > 1. )
+					continue;
+				
+				const int theta_idx = acos( mu ) * theta_bin / pi_2;
 				++ bin_counts[ idx_2d( s_idx, theta_idx ) ];
 			}
 			else
@@ -268,7 +270,9 @@ void correlate::output( std::string file_name )
 			for( int j = 1 - theta_bin; j < theta_bin; ++ j )
 			{
 				mu = pi_2 * ( j + 0.5 ) / double( theta_bin );
-				const int k = idx_2d( std::abs(i), std::abs(j) );
+				const int i_abs = i > 0 ? i : -i;
+				const int j_abs = j > 0 ? j : -j;
+				int k = idx_2d( i_abs, j_abs );
 				fout << s << '\t' << mu << '\t'
 					 << mult_f * bin_counts_tot[ k ] << '\n';
 			}

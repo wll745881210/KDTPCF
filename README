@@ -40,7 +40,7 @@ General Public License for more details.
 
 
 ======================================================================
-1. Installation
+1. Compilation
 
    This code does not depend on any non-standard C++ library; it uses
    nothing more than the STL.
