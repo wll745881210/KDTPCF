@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------+
 |             Two-point correlator with k-d tree method              |
 |            Author: Lile Wang   Email: lilewang@lbl.gov             |
-|                           Jan 14 2013                              |
+|                           Jan 16 2013                              |
 +--------------------------------------------------------------------+
 
 
@@ -103,7 +103,7 @@ General Public License for more details.
 
    (2) file_data and file_rand:
    
-   Self-evident.
+   File names, for the catalog and the random file, respectively.
 
    (3) lambda:
 
@@ -141,12 +141,13 @@ General Public License for more details.
    (3) "<data_file_name>_<random_file_name>_drbins".
 
    For 1-D correlation: The first column in each file indicates the
-   centers of distance bins, while the second is the number of pairs.
+   separation in redshift space, while the second is the number of
+   pairs.
 
-   For 2-D correlation: First column for r_p (separation component
-   perpandicular to the line of sight), second for pi (separation
-   component parallel to the line of sight), and third for bin
-   counting results.
+   For 2-D correlation: First column for redshift space separation,
+   second for theta (in rad, indicates the angle between the line of
+   sight and the separation vector), and third for pair counting
+   results.
 
 
 ======================================================================
