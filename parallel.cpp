@@ -61,9 +61,10 @@ void parallel::set_num_threads( int num_threads_src )
 }
 
 void parallel::set_dist_bin( double s_max, double s_min,
-                             int num_bins )
+							 int s_bin_num, int theta_bin_num )
 {
-    correlate::set_dist_bin( s_max, s_min, num_bins );
+    correlate::set_dist_bin( s_max, s_min, s_bin_num,
+							 theta_bin_num );
     return;
 }
 
@@ -80,13 +81,13 @@ void parallel::cal_corr( const kdtree & tree0,
                          const kdtree & tree1 )
 {
 	correlate::is_2d_cor = this->is_2d_cor;
+	
     correlate::static_clear(  );
     const kdtree_node * root0 = tree0.get_root_node(  );
     const kdtree_node * root1 = tree1.get_root_node(  );
     correlate::is_auto_cor = ( root0 == root1 );
     std::cout << ( correlate::is_auto_cor ? "Auto":"Cross" )
               << "-corr... " << std::flush;
-    
     get_node_vec( root0 );
     omp_set_num_threads( num_threads );
     #pragma omp parallel for
@@ -96,11 +97,10 @@ void parallel::cal_corr( const kdtree & tree0,
         corr_obj_vec[ i ].compare_node
             ( work_node_vec[ i ], root1 );
     }
-        
     for( int i = 0; i < num_objs; ++ i )
-        corr_obj_vec[ i ].add_to_total(  );
-    
-    std::cout << "Done." << std::endl;
+        corr_obj_vec[ i ].add_to_tot(  );
+	
+    std::cout << "Done.\n";	
     return;
 }
 

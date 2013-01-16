@@ -21,8 +21,8 @@ public:
 private:                        // Data
     std::vector<unsigned> bin_counts;
 private:                        // Functions
-    void brute_force_1d( const kdtree_node * node0,
-                          const kdtree_node * node1 );
+    void brute_force( const kdtree_node * node0,
+					  const kdtree_node * node1 );
 public:
     void compare_node( const kdtree_node * node0,
                        const kdtree_node * node1 );
@@ -33,33 +33,32 @@ public:
 private:                        // Data
     static double s_max, s_min;
     static double ds, s_min_ds;
-    static int num_bins;
+    static int s_bin;
+	static int theta_bin;
 	static const int dim = 3;
 private:                        // Functions
-    static int dist_bin_val( double d[  ] );
+	inline static int dist_bin_val( double d[  ] );
     int dist_bin( const kdtree_node * node0,
                   const kdtree_node * node1 );
 public:
     static void set_dist_bin
-    ( double s_max_src, double s_min_src, int num_bins_src );
+    ( double s_max_src, double s_min_src,
+	  int s_bin_src, int theta_bin_src );
 
     ////////// Output //////////
 private:
-    static std::vector<unsigned> bin_counts_total;
+    static std::vector<unsigned> bin_counts_tot;
 public:
     static bool is_auto_cor;
-    void add_to_total(  );
+    void add_to_tot(  );
     static void output( std::string file_name );    
 	
 	////////// 2D distance bin //////////
 private:						// Data
-	int pi_idx, rp_idx, s_idx;
-private:						// Functions
+	static const double pi_2 = 1.5707963267948966;
+private:						// Function
 	inline static int idx_2d( int i, int j );
-    void brute_force_2d( const kdtree_node * node0,
-						 const kdtree_node * node1 );
-	void extreme_bin_2d( const double x0[  ],
-						 const kdtree_node * node );
+	inline static double dot( double a[  ], double b[  ] );
 public:
 	static bool is_2d_cor;
 };

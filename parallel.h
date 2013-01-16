@@ -26,7 +26,7 @@ private:                        // Function
 public:    
     void set_num_threads( int num_threads_src );
     void set_dist_bin( double s_max, double s_min,
-                       int num_bins );
+                       int s_bin_num, int theta_bin_num );
 
     ////////// Conduct calculation //////////
 private:

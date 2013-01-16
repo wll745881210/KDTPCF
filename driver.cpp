@@ -66,11 +66,12 @@ void driver( const std::string & par_file_name )
     read_par.find_key( "num_threads", num_threads );
     para_corr.set_num_threads( num_threads );
     double s_max( 0. ), s_min( 0. );
-    int s_bin( 0 );
+    int s_bin( 0 ), theta_bin( 0 );
     read_par.find_key( "s_max", s_max );
     read_par.find_key( "s_min", s_min );
     read_par.find_key( "s_bin", s_bin );
-    para_corr.set_dist_bin( s_max, s_min, s_bin );
+	read_par.find_key( "theta_bin", theta_bin );
+    para_corr.set_dist_bin( s_max, s_min, s_bin, theta_bin );
 
 	int is_2d_cor( 0 );
 	read_par.find_key( "get_2d_corr", is_2d_cor );
