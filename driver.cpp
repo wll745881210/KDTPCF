@@ -67,7 +67,8 @@ void driver( const std::string & par_file_name )
         rand.build_tree(  );
     }
     const double precomp_t = omp_get_wtime(  );
-    std::cout << "Done." << std::endl;
+    std::cout << "Done. " << std::endl;
+    show_wall_t( "Preprocessing", start_t, precomp_t );
     
     para_corr.set_num_threads( num_threads );
     correlate::set_par( s_max, s_min, s_bin, phi_bin,
@@ -78,15 +79,15 @@ void driver( const std::string & par_file_name )
     para_corr.cal_corr( rand, rand );
     correlate::output( rand_file_name + "_rrbins" );
     const double autocal_t = omp_get_wtime(  );
+    show_wall_t( "Auto-correlation", precomp_t, autocal_t );
+	
     para_corr.cal_corr( data, rand );
     correlate::output( data_file_name + "_" + 
                        rand_file_name + "_drbins" );
     const double crosscal_t = omp_get_wtime(  );
-
-    show_wall_t( "Total time", start_t, crosscal_t );
-    show_wall_t( "Preprocessing", start_t, precomp_t );
-    show_wall_t( "Auto-correlation", precomp_t, autocal_t );
     show_wall_t( "Cross-correlation", autocal_t, crosscal_t );
+
+    show_wall_t( "Total time consumption", start_t, crosscal_t );
     return;
 }
 

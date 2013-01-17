@@ -96,7 +96,7 @@ General Public License for more details.
    
    Explanations to keys:
 
-   (1) s_max, s_min, s_bin and phi_bin:
+   -- s_max, s_min, s_bin and phi_bin:
 
    This code gives pair-counting results in different distance
    (spatial or angular separation) bins. Those values will specify a
@@ -108,35 +108,32 @@ General Public License for more details.
    vector and the line of sight (it can be ignored if you do not
    calculate the 2-D correlation).
 
-   (2) log_bin
+   -- log_bin
 
    If it is greater than 0, the program will use logarithm scale for
    binning. If it is set to 0 or ignored, the code will use linear
    binning. Please do not set s_min <= 0 when using log binning!
 
-   (3) file_data and file_rand:
+   -- file_data and file_rand:
    
    File names, for the catalog and the random file, respectively.
 
-   (4) lambda:
+   -- lambda and z_max:
 
-   Cosmological lambda.
+   Cosmological lambda and maximum value of redshift. Can be ignored
+   when doing angular correlations.
 
-   (5) z_max:
-   
-   Maximum value of redshift. Makes no difference for angular
-   correlation.
-
-   (6) corr_stat:
+   -- corr_stat:
 
    0 for angular correlation; 1 for azimuthal averaged spatial
    correlation; 2 for 2-D spatial correlation.
 
-   (7) num_threads
+   -- num_threads
 
    Number of threads with which the program is parallelized. A number
    that equals to (or slightly greater than) some power of 2 works
-   better.  If this key equals to 1, the program is run serially.
+   better.  If this key is set to 1, 0 or ignored, the program is run
+   serially.
 
    --------------------------------------------------
    2.2 Run!
