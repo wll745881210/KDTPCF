@@ -336,7 +336,7 @@ int correlate::phi_idx_val( const double & mu )
 
 double correlate::s_center( int i )
 {
-    const int i_sgn = i > 0 ? 1 : -1;
+    const int i_sgn = i >= 0 ? 1 : -1;
     const double s = s_min + ( i * i_sgn + 0.5 ) * ds;
     return ( is_log_bin ? exp( s ) : s ) * i_sgn;
 }
