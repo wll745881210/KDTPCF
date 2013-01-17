@@ -8,7 +8,7 @@
 #include <cmath>
 
 ////////////////////////////////////////////////////////////
-// Class: galaxy point
+// Struct: galaxy point
 
 galaxy_point & galaxy_point::operator =
 ( const galaxy_point & rhs )
@@ -26,7 +26,6 @@ void galaxy_point::swap( galaxy_point & rhs )
         this->x[ i ] = rhs.x[ i ];
         rhs.x[ i ] = temp;
     }
-
     return;
 }
 
@@ -43,15 +42,13 @@ kdtree::~kdtree(  )
     clear( root_node );
 }
 
-void kdtree::clear( kdtree_node * & node )
+void kdtree::clear( kdtree_node * node )
 {
     if( node == NULL )
         return;
-
     clear( node->left );
     clear( node->right );
     delete node;
-    node = NULL;
     return;
 }
 

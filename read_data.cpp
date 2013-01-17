@@ -105,15 +105,24 @@ double read_data::chi_of_z( const double & z )
     return chi0 + ( chi1 - chi0 ) * ( z - idx * dz ) / dz;
 }
 
+////////////////////////////////////////////////////////////
+// Coordinate conversion
+
 void read_data::convert( galaxy_point & src )
 {
     const double ra  = src.x[ 0 ] / rad_to_deg;
     const double dec = src.x[ 1 ] / rad_to_deg;
     const double rsh = src.x[ 2 ];
-    const double chi = chi_of_z( rsh );
+    const double chi = ( is_ang_cor ? 1. : chi_of_z( rsh ) );
     src.x[ 0 ] = cos( dec ) * cos( ra ) * chi;
     src.x[ 1 ] = cos( dec ) * sin( ra ) * chi;
     src.x[ 2 ] = sin( dec ) * chi;
+    return;
+}
+
+void read_data::set_ang_cor( bool ang_cor )
+{
+    this->is_ang_cor = ang_cor;
     return;
 }
 

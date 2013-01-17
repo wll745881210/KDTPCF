@@ -15,11 +15,13 @@ class read_data
 public:
     read_data(  );
     ~read_data(  );
-    void set_cosmology( const double lambda, const double z_max );
+    void set_cosmology( const double lambda,
+                        const double z_max );
     
     ////////// Read from files //////////
 public:
-    void read_from_file( std::string file_name, kdtree & tree );
+    void read_from_file( std::string file_name,
+                         kdtree & tree );
 
     ////////// Cosmology //////////
 private:                        // Data
@@ -32,7 +34,14 @@ private:                        // Function
     void rk4( double & chi, double & z );
     void get_chi_of_z(  );
     double chi_of_z( const double & z );
+
+    ////////// Coordinate conversion //////////
+private:                        // Data
+    bool is_ang_cor;
+private:                        // Function
     void convert( galaxy_point & src );
+public:
+    void set_ang_cor( bool ang_cor );
 
     ////////// Constants //////////
 private:

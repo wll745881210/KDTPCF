@@ -9,7 +9,7 @@
 
 parallel::parallel(  )
 {
-    is_2d_cor = false;
+
 }
 
 parallel::~parallel(  )
@@ -22,7 +22,7 @@ parallel::~parallel(  )
 
 void parallel::get_node_vec( const kdtree_node * root )
 {
-	int max_depth( 0 );
+    int max_depth( 0 );
     if( ( ( num_threads ) & ( num_threads - 1 ) ) == 0 )
         max_depth = int( log( num_threads ) / log( 2. ) + 0.5 );
     else
@@ -60,33 +60,17 @@ void parallel::set_num_threads( int num_threads_src )
     return;
 }
 
-void parallel::set_dist_bin( double s_max, double s_min,
-							 int s_bin_num, int theta_bin_num )
-{
-    correlate::set_dist_bin( s_max, s_min, s_bin_num,
-							 theta_bin_num );
-    return;
-}
-
 ////////////////////////////////////////////////////////////
 // Conduct calculation
 
-void parallel::set_2d_cor(  )
-{
-	is_2d_cor = true;
-	return;
-}
-
 void parallel::cal_corr( const kdtree & tree0,
                          const kdtree & tree1 )
-{
-	correlate::is_2d_cor = this->is_2d_cor;
-	
+{    
     correlate::static_clear(  );
     const kdtree_node * root0 = tree0.get_root_node(  );
     const kdtree_node * root1 = tree1.get_root_node(  );
-    correlate::is_auto_cor = ( root0 == root1 );
-    std::cout << ( correlate::is_auto_cor ? "Auto":"Cross" )
+    correlate::set_auto_cor( root0 == root1 );
+    std::cout << ( root0 == root1 ? "Auto":"Cross" )
               << "-corr... " << std::flush;
     get_node_vec( root0 );
     omp_set_num_threads( num_threads );
@@ -99,14 +83,8 @@ void parallel::cal_corr( const kdtree & tree0,
     }
     for( int i = 0; i < num_objs; ++ i )
         corr_obj_vec[ i ].add_to_tot(  );
-	
-    std::cout << "Done.\n";	
-    return;
-}
-
-void parallel::output( std::string file_name )
-{
-    correlate::output( file_name );
+    
+    std::cout << "Done.\n";
     return;
 }
 

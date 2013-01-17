@@ -40,7 +40,7 @@ public:
     ~kdtree(  );
     void set_max_depth( int max_depth );
 private:
-    void clear( kdtree_node * & node );
+    void clear( kdtree_node * node );
 
     ////////// Point data buffer //////////
 private:                        // Data

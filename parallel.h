@@ -11,8 +11,7 @@ class parallel
 public:
     parallel(  );
     ~parallel(  );
-
-
+	
     ////////// Object pool //////////
 private:                        // Data
     int num_threads;
@@ -25,17 +24,11 @@ private:                        // Function
                         int depth_remain );
 public:    
     void set_num_threads( int num_threads_src );
-    void set_dist_bin( double s_max, double s_min,
-                       int s_bin_num, int theta_bin_num );
 
     ////////// Conduct calculation //////////
-private:
-	bool is_2d_cor;
 public:
-	void set_2d_cor(  );
     void cal_corr( const kdtree & tree0,
                    const kdtree & tree1 );
-    void output( std::string file_name );
 };
 
 #endif
