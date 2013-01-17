@@ -11,18 +11,17 @@
 class correlate
 {
     ////////// Con/destructor and initializer //////////
+private:
+    static bool is_auto_cor, is_2d_cor, is_ang_cor;
 public:
     correlate(  );
     ~correlate(  );
     void clear(  );
     static void static_clear(  );
-
-    ////////// Correlation status //////////
-private:
-    static bool is_auto_cor, is_2d_cor, is_ang_cor;
-public:
-    static void set_cor_status( int stat );
     static void set_auto_cor( bool auto_cor );
+    static void set_par
+    ( double s_max_s, double s_min_s, int s_num_s,
+      int phi_num_s, bool log_bin, int corr_stat );    
 
     ////////// Compare trees //////////
 private:                        // Data
@@ -30,23 +29,11 @@ private:                        // Data
 private:                        // Functions
     void brute_force( const kdtree_node * node0,
                       const kdtree_node * node1 );
+    int node_bin( const kdtree_node * node0,
+                  const kdtree_node * node1 );
 public:
     void compare_node( const kdtree_node * node0,
                        const kdtree_node * node1 );
-
-    ////////// Distance bin index //////////
-private:                        // Data
-    static double s_max, s_min, ds;
-    static int s_bin, phi_bin;
-    static const int dim = 3;
-private:                        // Functions
-    inline static int dist_bin_val( double d[  ] );
-    int dist_bin( const kdtree_node * node0,
-                  const kdtree_node * node1 );
-public:
-    static void set_dist_bin
-    ( double s_max_src, double s_min_src,
-      int s_bin_src, int phi_bin_src );
 
     ////////// Output //////////
 private:
@@ -61,17 +48,27 @@ private:                        // Function
     inline static double dot( const double a[  ],
                               const double b[  ] );
 
-    ////////// Binning index //////////
+    ////////// Binning values //////////
 private:                        // Data
-    static double * bin_lim;
+    static double s_max, s_min, ds;
+    static double * s_bin_lim, * phi_bin_lim;
+    static int s_num, phi_num;
+    static bool is_log_bin;
 private:                        // Function
-    static void gen_bin_lim(  );
-    static int find_idx( const double & a_2 );
+    static double s_lim_val( int i );
+    static double phi_lim_val( int i );
+    inline static int s_idx_val( const double & a_2 );
+    inline static int s_idx_arr( const double a[  ] );
+    inline static int phi_idx_val( const double & mu );
+    static double s_center( int i );
+    static double phi_center( int i );
 
     ////////// Constants //////////
 private:
     static const double pi_2 = 1.5707963267948966;
     static const double rad_to_deg = 57.29577951308232;
+    static const int dim = 3;
+    static const double tiny = 1.e-2;
 };
 
 #endif

@@ -43,13 +43,17 @@ void read_data::read_from_file( std::string file_name,
     galaxy_point temp;
     std::vector<galaxy_point> & buf = tree.source_list;
     buf.clear(  );
-    fin >> temp.x[ 0 ] >> temp.x[ 1 ] >> temp.x[ 2 ];
+    fin >> temp.x[ 0 ] >> temp.x[ 1 ];
+    if( !is_ang_cor )
+        fin >> temp.x[ 2 ];
     fin.ignore( 64, '\n' );
     while( ! fin.eof(  ) )
     {
         convert( temp );
         buf.push_back( temp );
-        fin >> temp.x[ 0 ] >> temp.x[ 1 ] >> temp.x[ 2 ];
+        fin >> temp.x[ 0 ] >> temp.x[ 1 ];
+        if( !is_ang_cor )
+                fin >> temp.x[ 2 ];
         fin.ignore( 64, '\n' );
     }
     return;

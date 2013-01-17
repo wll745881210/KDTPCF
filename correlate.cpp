@@ -16,36 +16,35 @@ std::vector<unsigned> correlate::bin_counts_tot;
 double correlate::s_max;
 double correlate::s_min;
 double correlate::ds;
-double * correlate::bin_lim;
-int  correlate::s_bin;
-int  correlate::phi_bin;
+double * correlate::s_bin_lim;
+double * correlate::phi_bin_lim;
+int correlate::s_num;
+int correlate::phi_num;
+bool correlate::is_log_bin;
 bool correlate::is_auto_cor;
 bool correlate::is_2d_cor;
 bool correlate::is_ang_cor;
-
-// double correlate::time_waster_d;
-
 
 ////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
 
 correlate::correlate(  )
 {
-
+    
 }
 
 correlate::~correlate(  )
 {
-    
+
 }
 
 void correlate::clear(  )
 {
     bin_counts.clear(  );
     if( is_2d_cor )
-        bin_counts.resize( s_bin*phi_bin, 0 );
+        bin_counts.resize( s_num*phi_num, 0 );
     else
-        bin_counts.resize( s_bin, 0 );
+        bin_counts.resize( s_num, 0 );
     return;
 }
 
@@ -53,27 +52,43 @@ void correlate::static_clear(  )
 {
     bin_counts_tot.clear(  );
     if( is_2d_cor )
-        bin_counts_tot.resize( s_bin*phi_bin, 0 );
+        bin_counts_tot.resize( s_num*phi_num, 0 );
     else
-        bin_counts_tot.resize( s_bin, 0 );        
+        bin_counts_tot.resize( s_num, 0 );        
     return;    
-}
-
-////////////////////////////////////////////////////////////
-// Set correlation status
-
-void correlate::set_cor_status( int stat )
-{
-    if( stat < 0 || stat > 2 )
-        throw "Incorrect status";
-    is_2d_cor  = ( stat == 2 );
-    is_ang_cor = ( stat == 0 );
-    return;
 }
 
 void correlate::set_auto_cor( bool auto_cor )
 {
     is_auto_cor = auto_cor;
+    return;
+}
+
+void correlate::set_par
+( double s_max_s, double s_min_s, int s_num_s,
+  int phi_num_s, bool log_bin, int corr_stat )
+{
+    if( corr_stat < 0 || corr_stat > 2 )
+        throw "Incorrect status";
+    is_2d_cor  = ( corr_stat == 2 );
+    is_ang_cor = ( corr_stat == 0 );
+    is_log_bin = log_bin;
+    
+    s_max = is_log_bin ? log(s_max_s) : s_max_s;
+    if( is_log_bin && s_min_s < tiny )
+        s_min_s = tiny;
+    s_min = is_log_bin ? log(s_min_s) : s_min_s;
+    s_num = s_num_s;
+    ds = ( s_max - s_min ) / double ( s_num - 1 );
+    s_bin_lim = new double [ s_num + 1 ];
+    for( int i = 0; i < s_num + 1; ++ i )
+        s_bin_lim[ i ] = s_lim_val( i );
+    
+    phi_num = phi_num_s;
+    phi_bin_lim = new double [ phi_num + 1 ];
+    for( int i = 0; i < phi_num + 1; ++ i )
+        phi_bin_lim[ i ] = phi_lim_val( i );
+    
     return;
 }
 
@@ -107,11 +122,11 @@ void correlate::brute_force
                 else
                     d_min[ k ] = 0.;
             }
-            const int min_box_idx = dist_bin_val( d_min );
-            if( min_box_idx > s_bin - 1 )
+            const int min_box_idx = s_idx_arr( d_min );
+            if( min_box_idx > s_num - 1 )
                 continue;
-            const int max_box_idx = dist_bin_val( d_max );
-            if( min_box_idx == max_box_idx )
+            
+            if( min_box_idx == s_idx_arr( d_max ) )
             {
                 bin_counts[ min_box_idx ] += node1->idx_end
                     - node1->idx_start + 1;
@@ -131,16 +146,13 @@ void correlate::brute_force
                     d_max[ k ] = a + b;
                 }
                 const double s_2 = dot( d_min, d_min );
-                const int s_idx  = ( sqrt( s_2 ) - s_min ) / ds;
-                if( s_idx > s_bin - 1 )
+                const int s_idx = s_idx_val( s_2 );
+                if( s_idx > s_num - 1 || s_idx < 0 )
                     continue;
                 const double los_2 = dot( d_max, d_max );
-                const double phi = fabs( dot( d_max, d_min ) )
+                const double mu = fabs( dot( d_max, d_min ) )
                     / sqrt( los_2 * s_2 );
-                if( phi > 1. )
-                    continue;
-                
-                const int phi_idx = acos( phi ) * phi_bin / pi_2;
+                const int phi_idx = phi_idx_val( mu );
                 ++ bin_counts[ idx_2d( s_idx, phi_idx ) ];
             }
             else
@@ -148,21 +160,46 @@ void correlate::brute_force
                 for( int k = 0; k < dim; ++ k )
                     d_min[ k ] = vec0[ i ].x[ k ]
                         - vec1[ j ].x[ k ];
-                const int bin_idx = dist_bin_val( d_min );
-                if( bin_idx < 0 || bin_idx > s_bin - 1 )
+                const int s_idx = s_idx_arr( d_min );
+                if( s_idx > s_num - 1 || s_idx < 0 )
                     continue;
-                ++ bin_counts[ bin_idx ];
+                ++ bin_counts[ s_idx ];
             }
         }
     }
     return;
 }
 
+int correlate::node_bin( const kdtree_node * node0,
+                         const kdtree_node * node1 )
+{
+    double d0, d1;
+    double d_max[ dim ], d_min[ dim ];
+    for( int i = 0; i < dim; ++ i )
+    {        
+        d0 = node0->max[ i ] - node1->min[ i ];
+        d1 = node1->max[ i ] - node0->min[ i ];
+        const bool min_is_d0 = fabs( d0 ) < fabs( d1 );
+        d_max[ i ] = min_is_d0 ? d1 : d0;
+        if( d0 * d1 < 0 )
+            d_min[ i ] = min_is_d0 ? d0 : d1;
+        else
+            d_min[ i ] = 0.;
+    }
+    
+    const int bin_min = s_idx_arr( d_min );
+    if( bin_min > s_num - 1 )
+        return -2;
+    return bin_min == s_idx_arr( d_max ) ? bin_min : -1;
+}
+
 void correlate::compare_node     //  Recursion is NOT slow!
 ( const kdtree_node * node0, const kdtree_node * node1 )
 {
+    
     if( node0 == NULL || node1 == NULL )
         return;
+    
     if( is_auto_cor )        // If auto-correlation
     {
         if( node0->idx_start >= node1->idx_end )
@@ -181,8 +218,8 @@ void correlate::compare_node     //  Recursion is NOT slow!
             return;
         }
     }
-        
-    const int s_idx = dist_bin( node0, node1 );
+
+    const int s_idx = node_bin( node0, node1 );    
     if( s_idx == -1 || ( is_2d_cor && ( s_idx > -2 ) ) )
     {
         if( node0->left == NULL && node1->left == NULL )
@@ -207,52 +244,6 @@ void correlate::compare_node     //  Recursion is NOT slow!
 }
 
 ////////////////////////////////////////////////////////////
-// Distance bin index calculation
-
-int correlate::dist_bin_val( double d[  ] )
-{
-    return find_idx( pow( d[ 0 ], 2 ) + pow( d[ 1 ], 2 )
-                    + pow( d[ 2 ], 2 ) );
-}
-
-int correlate::dist_bin( const kdtree_node * node0,
-                         const kdtree_node * node1 )
-{
-    double d0, d1;
-    double d_max[ dim ], d_min[ dim ];
-    for( int i = 0; i < dim; ++ i )
-    {        
-        d0 = node0->max[ i ] - node1->min[ i ];
-        d1 = node1->max[ i ] - node0->min[ i ];
-        const bool min_is_d0 = fabs( d0 ) < fabs( d1 );
-        d_max[ i ] = min_is_d0 ? d1 : d0;
-        if( d0 * d1 < 0 )
-            d_min[ i ] = min_is_d0 ? d0 : d1;
-        else
-            d_min[ i ] = 0.;
-    }
-
-    const int bin_min = dist_bin_val( d_min );
-    if( bin_min > s_bin - 1 )
-        return -2;
-    const int bin_max = dist_bin_val( d_max );
-    return bin_min == bin_max ? bin_min : -1;
-}
-
-void correlate::set_dist_bin
-( double s_max_src, double s_min_src,
-  int s_bin_src, int phi_bin_src )
-{
-    s_max   = s_max_src;
-    s_min   = s_min_src;
-    s_bin   = s_bin_src;
-    phi_bin = phi_bin_src;
-    ds = ( s_max - s_min ) / double ( s_bin - 1 );
-    gen_bin_lim(  );
-    return;
-}
-
-////////////////////////////////////////////////////////////
 // Output bin counting results
 
 void correlate::add_to_tot(  )
@@ -264,27 +255,26 @@ void correlate::add_to_tot(  )
 
 void correlate::output( std::string file_name )
 {
-    double s( 0. ), phi( 0. );
     std::ofstream fout( file_name.c_str(  ) );
     const int f = ( is_auto_cor ? 2 : 1 );
 
     if( is_2d_cor )
-        for( int i = 1 - s_bin; i < s_bin; ++ i )
+        for( int i = 1 - s_num; i < s_num; ++ i )
         {
-            s = s_min + ds * ( i + 0.5 );
-            for( int j = 1 - phi_bin; j < phi_bin; ++ j )
+            const double s = s_center( i );
+            const int i_abs = i > 0 ? i : -i;
+            for( int j = 1 - phi_num; j < phi_num; ++ j )
             {
-                phi = pi_2 * ( j + 0.5 ) / double( phi_bin );
-                const int i_abs = i > 0 ? i : -i;
+                const double phi = phi_center( j );
                 const int j_abs = j > 0 ? j : -j;
                 int k = idx_2d( i_abs, j_abs );
-                fout << s << '\t' << phi * rad_to_deg << '\t'
+                fout << s << '\t' << phi << '\t'
                      << f * bin_counts_tot[ k ] << '\n';
             }
         }
     else
-        for( int i = 0; i < s_bin; ++ i )
-            fout << s_min + ds * ( i + 0.5 ) << '\t'
+        for( int i = 0; i < s_num; ++ i )
+            fout << s_center( i ) << '\t'
                  << bin_counts_tot[ i ] * f << '\n';
     return;
 }
@@ -294,7 +284,7 @@ void correlate::output( std::string file_name )
 
 int correlate::idx_2d( int i, int j )
 {
-    return i * phi_bin + j;
+    return i * phi_num + j;
 }
 
 double correlate::dot( const double a[  ],
@@ -304,41 +294,56 @@ double correlate::dot( const double a[  ],
 }
 
 ////////////////////////////////////////////////////////////
-// Finding binning index more quickly
+// Find binning index more quickly: Look up the table!
 
-void correlate::gen_bin_lim(  )
+double correlate::s_lim_val( int i )
 {
-    bin_lim = new double [ s_bin ];
+    double s = s_min + i * ds;
+    s = is_log_bin ? exp( s ) : s;
     if( is_ang_cor )
-    {
-        for( int i = 0; i < s_bin; ++ i )
-        {
-            const double theta
-                = ( s_min + i * ds ) / rad_to_deg;
-            bin_lim[ i ] = pow( 2. * sin( theta / 2. ), 2 );
-        }
-        s_max = pow( 2. * sin( ( s_max + ds )
-                               / rad_to_deg / 2. ), 2 );
-    }
-    else
-    {
-        for( int i = 0; i < s_bin; ++ i )
-        {
-            const double s = s_min + i * ds;
-            bin_lim[ i ] = pow( s, 2 );
-        }
-        s_max = pow( s_max + ds, 2 );
-    }
-    return;
+        return pow( 2. * sin( s / rad_to_deg / 2. ), 2 );
+    return pow( s, 2 );
 }
 
-int correlate::find_idx( const double & a_2 )
+double correlate::phi_lim_val( int i )
 {
-    if( a_2 > s_max )
-        return s_bin;
-    for( int i = s_bin - 1; i > -1; -- i )
-        if( bin_lim[ i ] <= a_2 )
+    return cos( pi_2 * i / double( phi_num ) );
+}
+
+int correlate::s_idx_val( const double & a_2 )
+{
+    for( int i = s_num; i > -1; -- i )
+        if( s_bin_lim[ i ] <= a_2 )
+            return i;
+    return -1;
+}
+
+int correlate::s_idx_arr( const double a[  ] )
+{
+    return s_idx_val( a[ 0 ]*a[ 0 ] + a[ 1 ]*a[ 1 ]
+                      + a[ 2 ]*a[ 2 ] );
+}
+
+int correlate::phi_idx_val( const double & mu )
+{
+    if( mu >= 1. )
+        return phi_num - 1;
+    for( int i = phi_num - 1; i > -1; -- i )
+        if( phi_bin_lim[ i ] >= mu )
             return i;
     return 0;
+}
+
+double correlate::s_center( int i )
+{
+    const int i_sgn = i > 0 ? 1 : -1;
+    const double s = s_min + ( i * i_sgn + 0.5 ) * ds;
+    return ( is_log_bin ? exp( s ) : s ) * i_sgn;
+}
+
+double correlate::phi_center( int i )
+{
+    return pi_2 * ( i + 0.5 ) / double( phi_num )
+        * rad_to_deg;    
 }
 

@@ -6,7 +6,7 @@
 
 #include <fstream>
 #include <sstream>
-#include <string>
+#include <string>    
 #include <vector>
 
 class input
@@ -35,15 +35,17 @@ private:
 template <typename T>
 void input::find_key( std::string key_name, T & val )
 {
+    std::stringstream ss;
     for( unsigned i = 0; i < item_name.size(  ); ++ i )
         if( item_name[ i ].compare( key_name ) == 0 )
         {
-            std::stringstream ss;
             ss.str( value[ i ] );
             ss >> val;
             return;
         }
-    throw "Key name in parameter file not found.";
+    ss.str( "0" );
+    ss >> val;
+    return;
 }
 
 #endif

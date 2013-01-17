@@ -34,7 +34,7 @@ void driver( const std::string & par_file_name )
 
     int corr_stat( 0 ), num_threads( 0 );
     double s_max( 0. ), s_min( 0. );
-    int s_bin( 0 ), phi_bin( 0 );
+    int s_bin( 0 ), phi_bin( 0 ), log_bin( 0 );
     std::string data_file_name, rand_file_name;
     double lambda( 0. ), z_max( 0. );
     read_par.read(  );
@@ -44,6 +44,7 @@ void driver( const std::string & par_file_name )
     read_par.find_key( "s_min", s_min );
     read_par.find_key( "s_bin", s_bin );
     read_par.find_key( "phi_bin", phi_bin );
+    read_par.find_key( "log_bin", log_bin );    
     read_par.find_key( "file_data", data_file_name );
     read_par.find_key( "file_rand", rand_file_name );
     read_par.find_key( "lambda", lambda );
@@ -69,8 +70,8 @@ void driver( const std::string & par_file_name )
     std::cout << "Done." << std::endl;
     
     para_corr.set_num_threads( num_threads );
-    correlate::set_cor_status( corr_stat );
-    correlate::set_dist_bin( s_max, s_min, s_bin, phi_bin );
+    correlate::set_par( s_max, s_min, s_bin, phi_bin,
+                        log_bin > 0, corr_stat );
     
     para_corr.cal_corr( data, data );
     correlate::output( data_file_name + "_ddbins" );

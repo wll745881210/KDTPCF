@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------+
 |             Two-point correlator with k-d tree method              |
 |            Author: Lile Wang   Email: lilewang@lbl.gov             |
-|                           Jan 16 2013                              |
+|                           Jan 17 2013                              |
 +--------------------------------------------------------------------+
 
 
@@ -84,13 +84,14 @@ General Public License for more details.
    s_max                30
    s_min                1
    s_bin                11
-   phi_bin 		40
+   phi_bin              40
+   log_bin              1
    file_data            <data_file_name>
    file_rand            <random_file_name>
    lambda               0.7
    z_max                5
-   corr_stat 		1
-   num_threads 		8
+   corr_stat            1
+   num_threads          8
    ----------------------------------------
    
    Explanations to keys:
@@ -104,28 +105,34 @@ General Public License for more details.
    respectively (in deg for angular separation and Mpc/h for spatial
    separation); "s_bin" gives the number of bins in separation;
    "phi_bin" gives binning number of the angle between the separation
-   vector and the line of sight (it makes no difference if you do not
+   vector and the line of sight (it can be ignored if you do not
    calculate the 2-D correlation).
 
-   (2) file_data and file_rand:
+   (2) log_bin
+
+   If it is greater than 0, the program will use logarithm scale for
+   binning. If it is set to 0 or ignored, the code will use linear
+   binning. Please do not set s_min <= 0 when using log binning!
+
+   (3) file_data and file_rand:
    
    File names, for the catalog and the random file, respectively.
 
-   (3) lambda:
+   (4) lambda:
 
    Cosmological lambda.
 
-   (4) z_max:
+   (5) z_max:
    
    Maximum value of redshift. Makes no difference for angular
    correlation.
 
-   (5) corr_stat:
+   (6) corr_stat:
 
    0 for angular correlation; 1 for azimuthal averaged spatial
    correlation; 2 for 2-D spatial correlation.
 
-   (6) num_threads
+   (7) num_threads
 
    Number of threads with which the program is parallelized. A number
    that equals to (or slightly greater than) some power of 2 works

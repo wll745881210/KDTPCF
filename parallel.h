@@ -11,7 +11,7 @@ class parallel
 public:
     parallel(  );
     ~parallel(  );
-	
+    
     ////////// Object pool //////////
 private:                        // Data
     int num_threads;
