@@ -52,11 +52,11 @@ private:                        // Data
     kdtree data, rand;
     int data_size, rand_size;
     std::vector<unsigned> dd, dd_jk;
-	std::vector<unsigned> rr, rr_jk;
-	std::vector<unsigned> dr, dr_jk;
+    std::vector<unsigned> rr, rr_jk;
+    std::vector<unsigned> dr, dr_jk;
 private:                        // Function
     void cal(  );
-	void cal_ls(  );
+    void cal_ls(  );
 
     ////////// Timer //////////
 private:                        // Data

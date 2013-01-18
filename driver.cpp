@@ -94,14 +94,14 @@ void driver::cal(  )
                            rand_file_name + "_drbins" );
     show_wall_t( "Cross-correlation", auto_t, cross_t );
 
-	if( ls_estimate >= 1 )
-		cal_ls(  );
-	return;
+    if( ls_estimate >= 1 )
+        cal_ls(  );
+    return;
 }
 
 void driver::cal_ls(  )
 {
-	std::vector<double> cor, ecor;
+    std::vector<double> cor, ecor;
     cor.resize( dd.size(  ), 0. );
     ecor.resize( dd.size(  ), 0. );
     const double dr_ratio = double( data_size ) / rand_size;
@@ -109,7 +109,7 @@ void driver::cal_ls(  )
     {
         if( rr[ i ] == 0 )
             rr[ i ] = 1;
-		// Note that dd and rr are not multiplied by 2.
+        // Note that dd and rr are not multiplied by 2.
         cor[ i ] = 1. + double( dd[ i ] ) / rr[ i ]
             / pow( dr_ratio, 2 ) - double( dr[ i ] ) / rr[ i ]
             / dr_ratio;
@@ -159,7 +159,7 @@ void driver::show_wall_t( std::string title,
 {
     end = omp_get_wtime(  );
     std::cout << std::setw( 25 ) << std::left << title
-			  << ": " << std::setw( 8 ) << std::left 
+              << ": " << std::setw( 8 ) << std::left 
               << end - start << " sec." << std::endl;
     return;
 }
