@@ -75,7 +75,6 @@ void driver::cal(  )
     correlate::set_par( s_max, s_min, s_bin, phi_bin,
                         log_bin > 0, corr_stat, jk_num );
     
-    std::vector<unsigned> dd, dd_jk, rr, rr_jk, dr, dr_jk;
     para_corr.cal_corr( data, data );
     dd    = correlate::bin_count_ref(  );
     dd_jk = correlate::bin_count_jk_ref(  );
@@ -94,10 +93,15 @@ void driver::cal(  )
         correlate::output( data_file_name + "_" + 
                            rand_file_name + "_drbins" );
     show_wall_t( "Cross-correlation", auto_t, cross_t );
-    if( ls_estimate < 1 )
-        return;
-    
-    std::vector<double> cor, ecor;
+
+	if( ls_estimate >= 1 )
+		cal_ls(  );
+	return;
+}
+
+void driver::cal_ls(  )
+{
+	std::vector<double> cor, ecor;
     cor.resize( dd.size(  ), 0. );
     ecor.resize( dd.size(  ), 0. );
     const double dr_ratio = double( data_size ) / rand_size;
@@ -105,7 +109,7 @@ void driver::cal(  )
     {
         if( rr[ i ] == 0 )
             rr[ i ] = 1;
-        
+		// Note that dd and rr are not multiplied by 2.
         cor[ i ] = 1. + double( dd[ i ] ) / rr[ i ]
             / pow( dr_ratio, 2 ) - double( dr[ i ] ) / rr[ i ]
             / dr_ratio;
@@ -154,8 +158,8 @@ void driver::show_wall_t( std::string title,
                           double & start, double & end )
 {
     end = omp_get_wtime(  );
-    std::cout << std::setw( 25 ) << std::left << title+": "
-              << std::setw( 8 ) << std::left 
+    std::cout << std::setw( 25 ) << std::left << title
+			  << ": " << std::setw( 8 ) << std::left 
               << end - start << " sec." << std::endl;
     return;
 }

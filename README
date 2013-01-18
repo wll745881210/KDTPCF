@@ -207,3 +207,7 @@ General Public License for more details.
 
    (1) Better load-balancing for parallelization.
 
+   (2) Porting this code so that it will be adopting GPU for the 
+   slowest part.
+
+

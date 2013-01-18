@@ -98,7 +98,7 @@ void correlate::set_par
 ////////////////////////////////////////////////////////////
 // Compare trees ( nodes )
 
-void correlate::brute_force
+void correlate::brute_force		// Only used for small nodes
 ( const kdtree_node * node0, const kdtree_node * node1 )
 {
     const std::vector<galaxy_point> & vec0 = *(node0->p_vec);
