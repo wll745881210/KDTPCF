@@ -14,7 +14,6 @@ class correlate
     ////////// Con/destructor and initializer //////////
 private:
     static bool is_auto_cor, is_2d_cor, is_ang_cor;
-    typedef 
 public:
     correlate(  );
     ~correlate(  );
