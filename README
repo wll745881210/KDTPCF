@@ -1,7 +1,7 @@
 +--------------------------------------------------------------------+
 |             Two-point correlator with k-d tree method              |
 |            Author: Lile Wang   Email: lilewang@lbl.gov             |
-|                           Jan 17 2013                              |
+|                           Jan 18 2013                              |
 +--------------------------------------------------------------------+
 
 
@@ -34,8 +34,10 @@ General Public License for more details.
    +------------------------+
 
    with some simplifications as well as extensions. It now can
-   calculate spatial (can be azimuthal averaged or 2-D) and angular
-   correlation. Using OpenMP, it can be run parallely.
+   calculate spatial (can be azimuthal averaged or 2-D, i.e. along and
+   perpandicular to the line of sight) and angular correlation, using
+   jackknife method to estimate the errors. With OpenMP equipped, it
+   can be run parallely.
 
 
 ======================================================================
@@ -64,10 +66,13 @@ General Public License for more details.
 
    This code requires a catalog and a random (with the same boundary
    as the catalog) to calculate auto pair-countings DD, RR and cross
-   pair-counting RR. Those two files should be ascii files without
-   header, with the first three columns being right-ascention,
-   declination and redshift. The following columns are ignored (please
-   do not have more than 128 extra columns).
+   pair-counting DR. 
+
+   Those two files should be ascii files without header, with the
+   first three columns being right-ascention, declination and redshift
+   for spatial correlation, or without the redshift column for angular
+   correlation. The following columns are ignored (please do not have
+   more than 128 extra characters after the useful columns).
 
    --------------------------------------------------
    2.1 Parameter file
@@ -81,17 +86,19 @@ General Public License for more details.
    CORR_FUNC
 
    Init
-   s_max                30
-   s_min                1
-   s_bin                11
-   phi_bin              40
-   log_bin              1
-   file_data            <data_file_name>
-   file_rand            <random_file_name>
-   lambda               0.7
-   z_max                5
-   corr_stat            1
-   num_threads          8
+   s_max            130
+   s_min            1
+   s_bin            20
+   phi_bin          40
+   log_bin          0
+   file_data        <data_file_name>
+   file_rand        <random_file_name>
+   lambda           0.7
+   z_max            5
+   corr_stat        1
+   jackknife_depth  4
+   ls_estimate      1
+   num_threads      2
    ----------------------------------------
    
    Explanations to keys:
@@ -105,14 +112,15 @@ General Public License for more details.
    respectively (in deg for angular separation and Mpc/h for spatial
    separation); "s_bin" gives the number of bins in separation;
    "phi_bin" gives binning number of the angle between the separation
-   vector and the line of sight (it can be ignored if you do not
+   vector and the line of sight (this key can be missing if you do not
    calculate the 2-D correlation).
 
-   -- log_bin
+   -- log_bin:
 
    If it is greater than 0, the program will use logarithm scale for
-   binning. If it is set to 0 or ignored, the code will use linear
-   binning. Please do not set s_min <= 0 when using log binning!
+   binning. If it is set to 0 or this key is missing, the code will
+   use linear binning. Please do not set s_min <= 0 when using log
+   binning!
 
    -- file_data and file_rand:
    
@@ -120,20 +128,34 @@ General Public License for more details.
 
    -- lambda and z_max:
 
-   Cosmological lambda and maximum value of redshift. Can be ignored
+   Cosmological lambda and maximum value of redshift. Can be missing
    when doing angular correlations.
 
    -- corr_stat:
 
-   0 for angular correlation; 1 for azimuthal averaged spatial
-   correlation; 2 for 2-D spatial correlation.
+   0 or being missing for angular correlation; 1 for azimuthaly
+   averaged spatial correlation; 2 for 2-D spatial correlation.
 
-   -- num_threads
+   -- jackknife_depth
+
+   Logarithm of the number of jackknife samples with base 2. Should be
+   an integer. If jackknife_depth <= 0 or this key is missing, the
+   default value (jackknife_depth = 4) will be automatically adopted.
+
+   -- ls_estimate
+
+   If it equals to 0 or the key is missing, the code will only give
+   pair counting results. If set to 1, you will get the correlation
+   function and the estimation of errors with Landy-Sazlay estimator
+   applied. If ls_estimate >= 2, both type of results will be
+   provided.
+
+   -- num_threads:
 
    Number of threads with which the program is parallelized. A number
    that equals to (or slightly greater than) some power of 2 works
-   better.  If this key is set to 1, 0 or ignored, the program is run
-   serially.
+   better. If this key is set to 1, 0 or the key is missing, the
+   program is run serially.
 
    --------------------------------------------------
    2.2 Run!
@@ -143,7 +165,8 @@ General Public License for more details.
    --------------------------------------------------
    2.3 Output
 
-   Output files are named as 
+   2.3.1 If pair counting output is applied (ls_estimate = 0 or >= 2),
+   output files are named as:
 
    (1) "<data_file_name>_ddbins";
 
@@ -153,12 +176,28 @@ General Public License for more details.
 
    For 1-D correlation: The first column in each file indicates the
    spatial redshift space separation (in Mpc/h) or angular separation
-   (in deg), while the second is the number of pairs.
+   (in deg), while the second is the number of pairs, and the
+   following columns are jackknife results.
 
    For 2-D correlation: First column for redshift space separation,
    second for theta (in deg, indicates the angle between the line of
-   sight and the separation vector), and third for pair counting
-   results.
+   sight and the separation vector), third for pair counting results,
+   and the rest columns for jackknife results.
+
+   2.3.2 If LS estimator is applied (ls_estimator >= 1), the output
+   file is named as:
+
+   "<data_file_name>_corr"
+
+   For 1-D correlation: The first column in each file indicates the
+   spatial redshift space separation (in Mpc/h) or angular separation
+   (in deg), while the second is for the correlation function value,
+   and the third for error estimation.
+
+   For 2-D correlation: First column for redshift space separation,
+   second for theta (in deg, indicates the angle between the line of
+   sight and the separation vector), third for the correlation
+   function value, and the forth for error estimation.
 
 
 ======================================================================
@@ -166,5 +205,5 @@ General Public License for more details.
    
    We will add the following things to the code:
 
-   (1) Jack-knife method for error estimation.
+   (1) Better load-balancing for parallelization.
 

@@ -70,7 +70,7 @@ void input::get_items(  )
         ss >> value_temp;
         item_name.push_back( item_temp );
         value.push_back( value_temp );
-        std::cout << std::setw( 15 ) << std::left
+        std::cout << std::setw( 20 ) << std::left
                   << item_temp << value_temp << std::endl;
     }
     length = item_name.size(  );

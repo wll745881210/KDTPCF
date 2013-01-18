@@ -13,6 +13,7 @@
 // Static variables
 
 std::vector<unsigned> correlate::bin_counts_tot;
+std::vector<unsigned> correlate::bin_counts_tot_jk;
 double correlate::s_max;
 double correlate::s_min;
 double correlate::ds;
@@ -20,6 +21,7 @@ double * correlate::s_bin_lim;
 double * correlate::phi_bin_lim;
 int correlate::s_num;
 int correlate::phi_num;
+int correlate::jk_num;
 bool correlate::is_log_bin;
 bool correlate::is_auto_cor;
 bool correlate::is_2d_cor;
@@ -41,20 +43,20 @@ correlate::~correlate(  )
 void correlate::clear(  )
 {
     bin_counts.clear(  );
-    if( is_2d_cor )
-        bin_counts.resize( s_num*phi_num, 0 );
-    else
-        bin_counts.resize( s_num, 0 );
+    bin_counts_jk.clear(  );
+    const int size = is_2d_cor ? s_num*phi_num : s_num;
+    bin_counts.resize( size, 0 );
+    bin_counts_jk.resize( size * jk_num, 0 );
     return;
 }
 
 void correlate::static_clear(  )
 {
     bin_counts_tot.clear(  );
-    if( is_2d_cor )
-        bin_counts_tot.resize( s_num*phi_num, 0 );
-    else
-        bin_counts_tot.resize( s_num, 0 );        
+    bin_counts_tot_jk.clear(  );
+    const int size = is_2d_cor ? s_num*phi_num : s_num;
+    bin_counts_tot.resize( size, 0 );
+    bin_counts_tot_jk.resize( size * jk_num, 0 );
     return;    
 }
 
@@ -66,7 +68,7 @@ void correlate::set_auto_cor( bool auto_cor )
 
 void correlate::set_par
 ( double s_max_s, double s_min_s, int s_num_s,
-  int phi_num_s, bool log_bin, int corr_stat )
+  int phi_num_s, bool log_bin, int corr_stat, int jk_n )
 {
     if( corr_stat < 0 || corr_stat > 2 )
         throw "Incorrect status";
@@ -88,7 +90,8 @@ void correlate::set_par
     phi_bin_lim = new double [ phi_num + 1 ];
     for( int i = 0; i < phi_num + 1; ++ i )
         phi_bin_lim[ i ] = phi_lim_val( i );
-    
+
+    jk_num = jk_n;
     return;
 }
 
@@ -104,6 +107,11 @@ void correlate::brute_force
     int inner_start = node1->idx_start;
     int inner_end   = node1->idx_end;
     const bool is_same_node( node0 == node1 );
+    const int sample0( node0->jk_sample );
+    const int sample1( node1->jk_sample );
+    const bool is_valid_jk_node0( sample0 >= 0 );
+    const bool is_valid_diff_jk
+        = ( sample1 >= 0 ) && ( sample0 != sample1 );
 
     for( int i = node0->idx_start; i <= node0->idx_end; ++ i )
     {
@@ -128,8 +136,12 @@ void correlate::brute_force
             
             if( min_box_idx == s_idx_arr( d_max ) )
             {
-                bin_counts[ min_box_idx ] += node1->idx_end
-                    - node1->idx_start + 1;
+                const int add = inner_end - inner_start + 1;
+                bin_counts[ min_box_idx ] += add;
+                if( is_valid_jk_node0 )
+                    jk_add( min_box_idx, sample0, add );
+                if( is_valid_diff_jk )
+                    jk_add( min_box_idx, sample1, add );
                 continue;
             }
         }
@@ -153,7 +165,12 @@ void correlate::brute_force
                 const double mu = fabs( dot( d_max, d_min ) )
                     / sqrt( los_2 * s_2 );
                 const int phi_idx = phi_idx_val( mu );
-                ++ bin_counts[ idx_2d( s_idx, phi_idx ) ];
+                const int idx_tot = idx_2d( s_idx, phi_idx );
+                ++ bin_counts[ idx_tot ];
+                if( is_valid_jk_node0 )
+                    jk_add( idx_tot, sample0 );
+                if( is_valid_diff_jk )
+                    jk_add( idx_tot, sample1 );
             }
             else
             {
@@ -164,6 +181,10 @@ void correlate::brute_force
                 if( s_idx > s_num - 1 || s_idx < 0 )
                     continue;
                 ++ bin_counts[ s_idx ];
+                if( is_valid_jk_node0 )
+                    jk_add( s_idx, sample0 );
+                if( is_valid_diff_jk )
+                    jk_add( s_idx, sample1 );
             }
         }
     }
@@ -237,9 +258,32 @@ void correlate::compare_node     //  Recursion is NOT slow!
         }
     }
     else if( s_idx > -1 )
-        bin_counts[ s_idx ]
-            += ( node0->idx_end - node0->idx_start + 1 )
+    {
+        const int add = ( node0->idx_end - node0->idx_start + 1 )
             * ( node1->idx_end - node1->idx_start + 1 );
+        bin_counts[ s_idx ] += add;
+        const int sample0( node0->jk_sample );
+        const int sample1( node1->jk_sample );        
+        if( sample0 >= 0 )
+            jk_add( s_idx, sample0, add );
+        if( ( sample0 != sample1 ) && ( sample1 >= 0 ) )
+            jk_add( s_idx, sample1, add );
+    }
+    return;
+}
+
+////////////////////////////////////////////////////////////
+// Jackknife
+
+void correlate::jk_add( int idx, int sample, int add )
+{
+    bin_counts_jk[ idx * jk_num + sample ] += add;
+    return;
+}
+
+void correlate::jk_add( int idx, int sample )
+{
+    ++ bin_counts_jk[ idx * jk_num + sample ];
     return;
 }
 
@@ -250,14 +294,28 @@ void correlate::add_to_tot(  )
 {
     for( unsigned i = 0; i < bin_counts.size(  ); ++ i )
         bin_counts_tot[ i ] += bin_counts[ i ];
+    for( unsigned i = 0; i < bin_counts_jk.size(  ); ++ i )
+        bin_counts_tot_jk[ i ] += bin_counts_jk[ i ];
+    return;
+}
+
+void correlate::out_one_line( std::ofstream & fout, int idx )
+{
+    const int f = ( is_auto_cor ? 2 : 1 );
+    fout << '\t' << f * bin_counts_tot[ idx ];
+    for( int j = 0; j < jk_num; ++ j )
+    {
+        const int jk_res = bin_counts_tot[ idx ]
+            - bin_counts_tot_jk[ j + jk_num * idx ];
+        fout << '\t' << f * jk_res;
+    }
+    fout << '\n';
     return;
 }
 
 void correlate::output( std::string file_name )
 {
     std::ofstream fout( file_name.c_str(  ) );
-    const int f = ( is_auto_cor ? 2 : 1 );
-
     if( is_2d_cor )
         for( int i = 1 - s_num; i < s_num; ++ i )
         {
@@ -268,15 +326,27 @@ void correlate::output( std::string file_name )
                 const double phi = phi_center( j );
                 const int j_abs = j > 0 ? j : -j;
                 int k = idx_2d( i_abs, j_abs );
-                fout << s << '\t' << phi << '\t'
-                     << f * bin_counts_tot[ k ] << '\n';
+                fout << s << '\t' << phi;
+                out_one_line( fout, k );
             }
         }
     else
         for( int i = 0; i < s_num; ++ i )
-            fout << s_center( i ) << '\t'
-                 << bin_counts_tot[ i ] * f << '\n';
+        {
+            fout << s_center( i );
+            out_one_line( fout, i );
+        }
     return;
+}
+
+const std::vector<unsigned> & correlate::bin_count_ref(  )
+{
+    return bin_counts_tot;
+}
+
+const std::vector<unsigned> & correlate::bin_count_jk_ref(  )
+{
+    return bin_counts_tot_jk;
 }
 
 ////////////////////////////////////////////////////////////

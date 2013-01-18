@@ -21,6 +21,7 @@ struct kdtree_node
 {    
     kdtree_node * left, * right;
     int idx_start, idx_end;
+    int jk_sample;
     double max[ 3 ], min[ 3 ];
     std::vector<galaxy_point> * p_vec;
 };
@@ -38,7 +39,7 @@ class kdtree
 public:
     kdtree(  );
     ~kdtree(  );
-    void set_max_depth( int max_depth );
+    static void set_jackknife_depth( int jk_d );
 private:
     void clear( kdtree_node * node );
 
@@ -52,13 +53,15 @@ private:                        // Data
 private:                        // Data    
     kdtree_node * root_node;
     static const int leaf_node_num = 16;
+    static int jk_depth;
+    int jk_sample_count;    
 private:                        // Function
     kdtree_node * create_node( kdtree_node * parent_node,
                                int idx_start, int idx_end,
                                int depth );
     void display_node( kdtree_node * node, int depth );
 public:
-    void build_tree(  );
+    int build_tree(  );
     const kdtree_node * get_root_node(  ) const;
     void display(  );
     

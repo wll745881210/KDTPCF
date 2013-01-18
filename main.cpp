@@ -27,8 +27,9 @@ int main( int argn, char * argv[  ] )
             par_file_name = argv[ 1 ];
         else
             throw "Incorrect parameter file.";
-
-        driver( par_file_name );
+        
+        driver cal( par_file_name );
+        cal.go(  );
     }
     catch( const char * err )
     {

@@ -8,6 +8,11 @@
 #include <cmath>
 
 ////////////////////////////////////////////////////////////
+// Static variables
+
+int kdtree::jk_depth;
+
+////////////////////////////////////////////////////////////
 // Struct: galaxy point
 
 galaxy_point & galaxy_point::operator =
@@ -35,11 +40,19 @@ void galaxy_point::swap( galaxy_point & rhs )
 kdtree::kdtree(  )
 {
     root_node = NULL;
+    jk_sample_count = 0;
+    jk_depth = 4;
 }
 
 kdtree::~kdtree(  )
 {
     clear( root_node );
+}
+
+void kdtree::set_jackknife_depth( int jk_d )
+{
+    jk_depth = jk_d;
+    return;
 }
 
 void kdtree::clear( kdtree_node * node )
@@ -68,6 +81,13 @@ kdtree_node * kdtree::create_node
         = select_median( idx_start, idx_end, axis );
     current_node->idx_start = idx_start;
     current_node->idx_end   = idx_end;
+    if( depth == jk_depth )
+        current_node->jk_sample = jk_sample_count ++;
+    else if( depth > jk_depth )
+        current_node->jk_sample = parent_node->jk_sample;
+    else
+        current_node->jk_sample = -1;
+            
     for( int i = 0; i < 3; ++ i )
     {        
         current_node->max[ i ] = coord_max.x[ i ];
@@ -112,14 +132,13 @@ void kdtree::display_node( kdtree_node * node, int depth )
     return;
 }
 
-void kdtree::build_tree(  )
+int kdtree::build_tree(  )
 {
     if( source_list.size(  ) < 1 )
-        return;
-    root_node
-        = create_node( NULL, 0,
-                       source_list.size(  ) - 1, 0 );
-    return;
+        return 0;
+    root_node = create_node
+        ( NULL, 0, source_list.size(  ) - 1, 0 );
+    return source_list.size(  );
 }
 
 const kdtree_node * kdtree::get_root_node(  ) const
