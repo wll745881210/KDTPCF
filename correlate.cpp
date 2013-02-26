@@ -14,25 +14,25 @@
 
 std::vector<unsigned> correlate::bin_counts_tot;
 std::vector<unsigned> correlate::bin_counts_tot_jk;
-double correlate::s_max;
-double correlate::s_min;
-double correlate::ds;
-double * correlate::s_bin_lim;
-double * correlate::phi_bin_lim;
-int correlate::s_num;
-int correlate::phi_num;
-int correlate::jk_num;
-bool correlate::is_log_bin;
-bool correlate::is_auto_cor;
-bool correlate::is_2d_cor;
-bool correlate::is_ang_cor;
+double correlate::s_max( 0.3 );
+double correlate::s_min( 0.01 );
+double correlate::ds( 0.01 );
+double * correlate::s_bin_lim( NULL );
+double * correlate::phi_bin_lim( NULL );
+int correlate::s_num( 20 );
+int correlate::phi_num( 20 );
+int correlate::jk_num( 16 );
+bool correlate::is_log_bin( false );
+bool correlate::is_auto_cor( false );
+bool correlate::is_2d_cor( false );
+bool correlate::is_ang_cor( false );
 
 ////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
 
 correlate::correlate(  )
 {
-    
+
 }
 
 correlate::~correlate(  )
@@ -98,7 +98,8 @@ void correlate::set_par
 ////////////////////////////////////////////////////////////
 // Compare trees ( nodes )
 
-void correlate::brute_force		// Only used for small nodes
+
+void correlate::brute_force        // Only used when necessary
 ( const kdtree_node * node0, const kdtree_node * node1 )
 {
     const std::vector<galaxy_point> & vec0 = *(node0->p_vec);
@@ -127,14 +128,15 @@ void correlate::brute_force		// Only used for small nodes
                 d_max[ k ] = min_is_d0 ? d1 : d0;
                 if( d0 * d1 > 0 )
                     d_min[ k ] = min_is_d0 ? d0 : d1;
-                else
+                else			// Overlap in this dimension
                     d_min[ k ] = 0.;
             }
             const int min_box_idx = s_idx_arr( d_min );
             if( min_box_idx > s_num - 1 )
                 continue;
             
-            if( min_box_idx == s_idx_arr( d_max ) )
+            if( min_box_idx == s_idx_arr( d_max )
+                && min_box_idx > 0 )
             {
                 const int add = inner_end - inner_start + 1;
                 bin_counts[ min_box_idx ] += add;
@@ -204,7 +206,7 @@ int correlate::node_bin( const kdtree_node * node0,
         d_max[ i ] = min_is_d0 ? d1 : d0;
         if( d0 * d1 < 0 )
             d_min[ i ] = min_is_d0 ? d0 : d1;
-        else
+        else					// Overlap in this dimension
             d_min[ i ] = 0.;
     }
     
@@ -259,7 +261,8 @@ void correlate::compare_node     //  Recursion is NOT slow!
     }
     else if( s_idx > -1 )
     {
-        const int add = ( node0->idx_end - node0->idx_start + 1 )
+        const int add
+			= ( node0->idx_end - node0->idx_start + 1 )
             * ( node1->idx_end - node1->idx_start + 1 );
         bin_counts[ s_idx ] += add;
         const int sample0( node0->jk_sample );

@@ -53,7 +53,6 @@ void parallel::add_work_node( const kdtree_node * node,
     return;
 }
 
-
 void parallel::set_num_threads( int num_threads_src )
 {
     num_threads = num_threads_src;

@@ -1,5 +1,6 @@
 +--------------------------------------------------------------------+
-|             Two-point correlator with k-d tree method              |
+|            Two-point correlation with k-d tree method              |
+|            https://github.com/wll745881210/KDTPCF.git              |
 |            Author: Lile Wang   Email: lilewang@lbl.gov             |
 |                           Jan 18 2013                              |
 +--------------------------------------------------------------------+
@@ -165,8 +166,10 @@ General Public License for more details.
    --------------------------------------------------
    2.3 Output
 
-   2.3.1 If pair counting output is applied (ls_estimate = 0 or >= 2),
-   output files are named as:
+   2.3.1 If pair counting output is applied (ls_estimate == 0 or
+   ls_estimate >= 2), output files are named as (note that, in this
+   case, the size of the data catalog and the random IS NOT
+   considered in the output):
 
    (1) "<data_file_name>_ddbins";
 
@@ -185,7 +188,8 @@ General Public License for more details.
    and the rest columns for jackknife results.
 
    2.3.2 If LS estimator is applied (ls_estimator >= 1), the output
-   file is named as:
+   file is named as (note that, in this case, the size of the data
+   catalog and the random IS automatically considered in the output):
 
    "<data_file_name>_corr"
 

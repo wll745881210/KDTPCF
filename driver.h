@@ -29,17 +29,13 @@ private:                        // Data
     int corr_stat;
     int num_threads;
     int ls_estimate;
-    double s_max;
-    double s_min;
-    int s_bin;
-    int phi_bin;
+    double s_max, s_min;
+    int s_bin, phi_bin;
     int log_bin;
-    int jk_depth;
-    int jk_num;
+    int jk_depth, jk_num;
     std::string data_file_name;
     std::string rand_file_name;
-    double lambda;
-    double z_max;
+    double lambda, z_max;
 private:                        // Function
     void read_from_par(  );
 
@@ -56,7 +52,7 @@ private:                        // Data
     std::vector<unsigned> dr, dr_jk;
 private:                        // Function
     void cal(  );
-    void cal_ls(  );
+    void cal_ls(  );			// Landy-Sazlay
 
     ////////// Timer //////////
 private:                        // Data
