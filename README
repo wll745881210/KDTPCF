@@ -2,7 +2,7 @@
 |            Two-point correlation with k-d tree method              |
 |            https://github.com/wll745881210/KDTPCF.git              |
 |          Author: Lile Wang   Email: lilew@princeton.edu            |
-|                          March 18 2013                             |
+|                           April 6 2013                             |
 +--------------------------------------------------------------------+
 
 
@@ -89,32 +89,33 @@ General Public License for more details.
    Init
    s_max            130
    s_min            1
-   s_bin            20
-   phi_bin          40
+   s_bin_num        20
+   phi_bin_num      40
    log_bin          0
    file_data        <data_file_name>
    file_rand        <random_file_name>
+   out_name_base    <out_name_base>
    lambda           0.7
    z_max            5
    corr_stat        1
    jackknife_depth  4
-   ls_estimate      1
+   bin_count_type   1
    num_threads      2
    ----------------------------------------
    
    Explanations to keys:
 
-   -- s_max, s_min, s_bin and phi_bin:
+   -- s_max, s_min, s_bin_num, phi_bin_num:
 
    This code gives pair-counting results in different distance
    (spatial or angular separation) bins. Those values will specify a
    binning system with constant binning width in linear
    manner. "s_max" and "s_min" for maximum and minimum separatuib
    respectively (in deg for angular separation and Mpc/h for spatial
-   separation); "s_bin" gives the number of bins in separation;
-   "phi_bin" gives binning number of the angle between the separation
-   vector and the line of sight (this key can be missing if you do not
-   calculate the 2-D correlation).
+   separation); "s_bin_num" gives the number of bins in separation;
+   "phi_bin_num" gives binning number of the angle between the
+   separation vector and the line of sight (this key can be missing if
+   you do not calculate the 2-D correlation).
 
    -- log_bin:
 
@@ -123,9 +124,26 @@ General Public License for more details.
    use linear binning. Please do not set s_min <= 0 when using log
    binning!
 
-   -- file_data and file_rand:
+   -- file_data, file_rand:
    
    File names, for the catalog and the random file, respectively.
+
+   -- out_name_base:
+   
+   "Base" for the output file name. If specified, the name of the
+   outputs are named as (if they are to be output):
+
+   "<out_name_base>_ddbins"
+   "<out_name_base>_rrbins"   
+   "<out_name_base>_drbins"
+   "<out_name_base>_corr"
+
+   If this entry is missing, the output files are:
+
+   "<data_file_name>_ddbins"
+   "<random_file_name>_rrbins"
+   "<data_file_name>_<random_file_name>_drbins"
+   "<data_file_name>_<random_file_name>_corr"
 
    -- lambda and z_max:
 
@@ -143,13 +161,27 @@ General Public License for more details.
    an integer. If jackknife_depth <= 0 or this key is missing, the
    default value (jackknife_depth = 4) will be automatically adopted.
 
-   -- ls_estimate
+   -- bin_count_type
 
-   If it equals to 0 or the key is missing, the code will only give
-   pair counting results. If set to 1, you will get the correlation
-   function and the estimation of errors with Landy-Sazlay estimator
-   applied. If ls_estimate >= 2, both type of results will be
-   provided.
+   | bin_count_type | What will be calculated |
+   |----------------+-------------------------|
+   |              0 | dd, dr, rr              |
+   |              1 | dd, dr,rr, ls           |
+   |              2 | dd                      |
+   |              3 | rr                      |
+   |              4 | dr                      |
+   |              5 | dd, dr                  |
+   |              6 | dd, rr                  |
+   |              7 | dr, rr                  |
+
+   "dd": auto pair-count of the data catalog;
+
+   "rr": auto pair-count of the random sample;
+
+   "dr": cross pair-count between the data catalog and the random;
+
+   "ls": estimation of correlation function using Landy-Sazlay
+   estimator and jackknife method.
 
    -- num_threads:
 
@@ -166,43 +198,61 @@ General Public License for more details.
    --------------------------------------------------
    2.3 Output
 
-   2.3.1 If pair counting output is applied (ls_estimate == 0 or
-   ls_estimate >= 2), output files are named as (note that, in this
-   case, the size of the data catalog and the random IS NOT
-   considered in the output):
+   2.3.1 For "_ddbins", "_rrbins" and "_drbins" (pair-counts) files:
 
-   (1) "<data_file_name>_ddbins";
+   1-D correlation: 
 
-   (2) "<random_file_name>_rrbins";
+   |   Column | Content                                  |
+   |----------+------------------------------------------|
+   |        1 | Minimum of s (in Mpc/h) in the bin       |
+   |        2 | Central value of s (in Mpc/h) in the bin |
+   |        3 | Maximum of s (in Mpc/h) in the bin       |
+   |        4 | Pair-counts in the bin                   |
+   | The rest | "Jackknife" pair-counts in the bin       |
 
-   (3) "<data_file_name>_<random_file_name>_drbins".
+   s is the redshift space separation.
 
-   For 1-D correlation: The first column in each file indicates the
-   spatial redshift space separation (in Mpc/h) or angular separation
-   (in deg), while the second is the number of pairs, and the
-   following columns are jackknife results.
+   2-D correlation: 
 
-   For 2-D correlation: First column for redshift space separation,
-   second for theta (in deg, indicates the angle between the line of
-   sight and the separation vector), third for pair counting results,
-   and the rest columns for jackknife results.
+   |   Column | Content                                  |
+   |----------+------------------------------------------|
+   |        1 | Minimum of s (in Mpc/h) in the bin       |
+   |        2 | Central value of s (in Mpc/h) in the bin |
+   |        3 | Maximum of s (in Mpc/h) in the bin       |
+   |        4 | Minimum of phi (in deg) in the bin       |
+   |        5 | Central value of phi (in deg) in the bin |
+   |        6 | Minimum of phi (in deg) in the bin       |
+   |        7 | Pair-counts in the bin                   |
+   | The rest | "Jackknife" pair-counts in the bin       |
 
-   2.3.2 If LS estimator is applied (ls_estimator >= 1), the output
-   file is named as (note that, in this case, the size of the data
-   catalog and the random IS automatically considered in the output):
+   phi (in deg) indicates the angle between the line of sight and the
+   separation vector.
 
-   "<data_file_name>_corr"
+   2.3.2 For "_corr" files:
+   1-D correlation: 
 
-   For 1-D correlation: The first column in each file indicates the
-   spatial redshift space separation (in Mpc/h) or angular separation
-   (in deg), while the second is for the correlation function value,
-   and the third for error estimation.
+   |   Column | Content                                  |
+   |----------+------------------------------------------|
+   |        1 | Minimum of s (in Mpc/h) in the bin       |
+   |        2 | Central value of s (in Mpc/h) in the bin |
+   |        3 | Maximum of s (in Mpc/h) in the bin       |
+   |        4 | LS estimate of correlation               |
+   |        5 | "Jackknife" error estimate               |
 
-   For 2-D correlation: First column for redshift space separation,
-   second for theta (in deg, indicates the angle between the line of
-   sight and the separation vector), third for the correlation
-   function value, and the forth for error estimation.
+   s is the redshift space separation.
 
+   2-D correlation: 
+
+   |   Column | Content                                  |
+   |----------+------------------------------------------|
+   |        1 | Minimum of s (in Mpc/h) in the bin       |
+   |        2 | Central value of s (in Mpc/h) in the bin |
+   |        3 | Maximum of s (in Mpc/h) in the bin       |
+   |        4 | Minimum of phi (in deg) in the bin       |
+   |        5 | Central value of phi (in deg) in the bin |
+   |        6 | Minimum of phi (in deg) in the bin       |
+   |        7 | LS estimate of correlation               |
+   |        8 | "Jackknife" error estimate               |
 
 ======================================================================
 3. Expectations--Future development

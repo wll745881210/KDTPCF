@@ -81,7 +81,7 @@ void correlate::set_par
         s_min_s = tiny;
     s_min = is_log_bin ? log(s_min_s) : s_min_s;
     s_num = s_num_s;
-    ds = ( s_max - s_min ) / double ( s_num - 1 );
+    ds = ( s_max - s_min ) / double( s_num );
     s_bin_lim = new double [ s_num + 1 ];
     for( int i = 0; i < s_num + 1; ++ i )
         s_bin_lim[ i ] = s_lim_val( i );
@@ -319,26 +319,31 @@ void correlate::out_one_line( std::ofstream & fout, int idx )
 void correlate::output( std::string file_name )
 {
     std::ofstream fout( file_name.c_str(  ) );
-    if( is_2d_cor )
-        for( int i = 1 - s_num; i < s_num; ++ i )
-        {
-            const double s = s_center( i );
-            const int i_abs = i > 0 ? i : -i;
-            for( int j = 1 - phi_num; j < phi_num; ++ j )
+    for( int i = 0; i < s_num; ++ i )
+    {
+        const double s_bin_min = s_val( i, 0. );
+        const double s_bin_cen = s_val( i );
+        const double s_bin_max = s_val( i, 1. );
+        if( is_2d_cor )
+            for( int j = 0; j < phi_num; ++ j )
             {
-                const double phi = phi_center( j );
-                const int j_abs = j > 0 ? j : -j;
-                int k = idx_2d( i_abs, j_abs );
-                fout << s << '\t' << phi;
+                const double phi_bin_min = phi_val( j, 0. );
+                const double phi_bin_cen = phi_val( j );
+                const double phi_bin_max = phi_val( j, 1. );
+                const int k = idx_2d( std::abs( i ),
+                                      std::abs( j ) );
+                fout << s_bin_min << '\t' << s_bin_cen << '\t'
+                     << s_bin_max << '\t' << phi_bin_min << '\t'
+                     << phi_bin_cen << '\t' << phi_bin_max;
                 out_one_line( fout, k );
             }
-        }
-    else
-        for( int i = 0; i < s_num; ++ i )
+        else
         {
-            fout << s_center( i );
+            fout << s_bin_min << '\t' << s_bin_cen << '\t'
+                 << s_bin_max;
             out_one_line( fout, i );
-        }
+        }            
+    }
     return;
 }
 
@@ -407,16 +412,16 @@ int correlate::phi_idx_val( const double & mu )
     return 0;
 }
 
-double correlate::s_center( int i )
+double correlate::s_val( int i, double offset )
 {
     const int i_sgn = i >= 0 ? 1 : -1;
-    const double s = s_min + ( i * i_sgn + 0.5 ) * ds;
+    const double s = s_min + ( i * i_sgn + offset ) * ds;
     return ( is_log_bin ? exp( s ) : s ) * i_sgn;
 }
 
-double correlate::phi_center( int i )
+double correlate::phi_val( int i, double offset )
 {
-    return pi_2 * ( i + 0.5 ) / double( phi_num )
+    return pi_2 * ( i + offset ) / double( phi_num )
         * rad_to_deg;    
 }
 

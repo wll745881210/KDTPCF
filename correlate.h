@@ -77,8 +77,8 @@ private:                        // Function
     inline static int s_idx_arr( const double a[  ] );
     inline static int phi_idx_val( const double & mu );
 public:
-    static double s_center( int i );
-    static double phi_center( int i );
+    static double s_val( int i, double offset = 0.5 );
+    static double phi_val( int i, double offset = 0.5 );
 
     ////////// Constants //////////
 private:

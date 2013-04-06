@@ -26,16 +26,17 @@ public:
     ////////// Read from par file //////////
 private:                        // Data
     std::string par_file_name;
-    int corr_stat;
-    int num_threads;
-    int ls_estimate;
-    double s_max, s_min;
-    int s_bin, phi_bin;
-    int log_bin;
-    int jk_depth, jk_num;
+    int         corr_stat;
+    int         num_threads;
+    int         bin_count_type;
+    double      s_max, s_min;
+    int         s_num, phi_num;
+    int         log_bin;
+    int         jk_depth, jk_num;
     std::string data_file_name;
     std::string rand_file_name;
-    double lambda, z_max;
+    std::string out_name_base;
+    double      lambda, z_max;
 private:                        // Function
     void read_from_par(  );
 
@@ -45,8 +46,8 @@ private:
 
     ////////// Calculate //////////
 private:                        // Data
-    kdtree data, rand;
-    int data_size, rand_size;
+    kdtree data,      rand;
+    int    data_size, rand_size;
     std::vector<unsigned> dd, dd_jk;
     std::vector<unsigned> rr, rr_jk;
     std::vector<unsigned> dr, dr_jk;

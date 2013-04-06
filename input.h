@@ -24,7 +24,7 @@ private:
     std::ifstream fin;
     std::vector<std::string> item_name;
     std::vector<std::string> value;
-    int    length;
+    int length;
     
     void get_items(  );
 };
@@ -43,8 +43,6 @@ void input::find_key( std::string key_name, T & val )
             ss >> val;
             return;
         }
-    ss.str( "0" );
-    ss >> val;
     return;
 }
 

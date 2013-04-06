@@ -26,19 +26,21 @@ void driver::read_from_par(  )
     read_par.read(  );
     read_par.find_key( "corr_stat", corr_stat );
     read_par.find_key( "num_threads", num_threads );
-    read_par.find_key( "ls_estimate", ls_estimate );
+    read_par.find_key( "bin_count_type", bin_count_type );
     read_par.find_key( "s_max", s_max );
     read_par.find_key( "s_min", s_min );
-    read_par.find_key( "s_bin", s_bin );
-    read_par.find_key( "phi_bin", phi_bin );
+    read_par.find_key( "s_bin_num", s_num );
+    read_par.find_key( "phi_bin_num", phi_num );
     read_par.find_key( "log_bin", log_bin );    
     read_par.find_key( "file_data", data_file_name );
     read_par.find_key( "file_rand", rand_file_name );
+    read_par.find_key( "out_name_base", out_name_base );
     read_par.find_key( "lambda", lambda );
-    read_par.find_key( "z_max", z_max );
+    read_par.find_key( "z_max", z_max );    
     read_par.find_key( "jackknife_depth", jk_depth );
     jk_depth = jk_depth <= 0 ? 4 : jk_depth;
     jk_num = ( 1 << jk_depth );
+    
     return;
 }
 
@@ -70,31 +72,55 @@ void driver::build_trees(  )
 
 void driver::cal(  )
 {
+    const bool get_ls = ( bin_count_type == 1 );
+    const bool get_all_bins = ( bin_count_type < 2 );
+    const bool get_dd = ( bin_count_type == 2 )
+        || ( bin_count_type == 5 ) || ( bin_count_type == 6 );
+    const bool get_rr = ( bin_count_type == 3 )
+        || ( bin_count_type == 6 ) || ( bin_count_type == 7 );
+    const bool get_dr = ( bin_count_type == 4 )
+        || ( bin_count_type == 5 ) || ( bin_count_type == 7 );
+
+    std::string dd_name( out_name_base );
+    std::string rr_name( out_name_base );
+    std::string dr_name( out_name_base );
+    if( out_name_base.size(  ) < 1 )
+    {
+        dd_name = data_file_name;
+        rr_name = rand_file_name;
+        dr_name = data_file_name + "_" + rand_file_name;
+    }
+
     parallel para_corr;
     para_corr.set_num_threads( num_threads );
-    correlate::set_par( s_max, s_min, s_bin, phi_bin,
+    correlate::set_par( s_max, s_min, s_num, phi_num,
                         log_bin > 0, corr_stat, jk_num );
-    
-    para_corr.cal_corr( data, data );
-    dd    = correlate::bin_count_ref(  );
-    dd_jk = correlate::bin_count_jk_ref(  );
-    if( ls_estimate != 1 )
-        correlate::output( data_file_name + "_ddbins" );
-    para_corr.cal_corr( rand, rand );
-    rr    = correlate::bin_count_ref(  );
-    rr_jk = correlate::bin_count_jk_ref(  );
-    if( ls_estimate != 1 )
-        correlate::output( rand_file_name + "_rrbins" );
+
+    if( get_all_bins || get_dd )
+    {
+        para_corr.cal_corr( data, data );
+        dd    = correlate::bin_count_ref(  );
+        dd_jk = correlate::bin_count_jk_ref(  );
+        correlate::output( dd_name + "_ddbins" );
+    }
+    if( get_all_bins || get_rr )
+    {
+        para_corr.cal_corr( rand, rand );
+        rr    = correlate::bin_count_ref(  );
+        rr_jk = correlate::bin_count_jk_ref(  );
+        correlate::output( rr_name + "_rrbins" );
+    }
     show_wall_t( "Auto-correlation", precomp_t, auto_t );
-    para_corr.cal_corr( data, rand );
-    dr    = correlate::bin_count_ref(  );
-    dr_jk = correlate::bin_count_jk_ref(  );
-    if( ls_estimate != 1 )
-        correlate::output( data_file_name + "_" + 
-                           rand_file_name + "_drbins" );
+    if( get_all_bins || get_dr )
+    {
+        para_corr.cal_corr( data, rand );
+        dr    = correlate::bin_count_ref(  );
+        dr_jk = correlate::bin_count_jk_ref(  );
+        correlate::output( dr_name + "_drbins" );
+    }
     show_wall_t( "Cross-correlation", auto_t, cross_t );
 
-    if( ls_estimate >= 1 )
+    if( get_ls )
         cal_ls(  );
     return;
 }
@@ -128,31 +154,42 @@ void driver::cal_ls(  )
         ecor[ i ] = sqrt( ecor_local_sum );
     }
 
-    std::string out_file_name = data_file_name + "_corr";
+
+    std::string out_file_name = out_name_base + "_corr";
+    if( out_name_base.size(  ) < 1 )
+        out_file_name = data_file_name + "_"
+            + rand_file_name + "_corr";
+    
     std::ofstream fout( out_file_name.c_str(  ) );
-    if( corr_stat == 2 )
-        for( int i = 1 - s_bin; i < s_bin; ++ i )
-        {
-            const double s = correlate::s_center( i );
-            const int i_abs = i > 0 ? i : -i;
-            for( int j = 1 - phi_bin; j < phi_bin; ++ j )
+    for( int i = 0; i < s_num; ++ i )
+    {
+        typedef correlate corr;
+        const double s_bin_min = corr::s_val( i, 0. );
+        const double s_bin_cen = corr::s_val( i );
+        const double s_bin_max = corr::s_val( i, 1. );
+        if( corr_stat == 2 )
+            for( int j = 0; j < phi_num; ++ j )
             {
-                const double phi = correlate::phi_center( j );
-                const int j_abs = j > 0 ? j : -j;
-                const int k = i_abs * phi_bin + j_abs;
-                fout << s << '\t' << phi << '\t'
+                const double phi_bin_min = corr::phi_val( j, 0. );
+                const double phi_bin_cen = corr::phi_val( j );
+                const double phi_bin_max = corr::phi_val( j, 1. );
+                const int k = phi_num * std::abs( i ) + std::abs( j );
+                fout << s_bin_min << '\t' << s_bin_cen
+                     << '\t' << s_bin_max << '\t'
+                     << phi_bin_min << '\t' << phi_bin_cen
+                     << '\t' << phi_bin_max << '\t'
                      << cor[ k ] << '\t' << ecor[ k ] << '\n';
             }
-        }
-    else
-        for( int i = 0; i < s_bin; ++ i )
-            fout << correlate::s_center( i ) << '\t'
-                 << cor[ i ] << '\t' << ecor[ i ] << '\n';
+        else
+            fout << s_bin_min << '\t' << s_bin_cen << '\t'
+                 << s_bin_max << '\t' << cor[ i ] << '\t'
+                 << ecor[ i ] << '\n';
+    }
     return;
 }
 
 ////////////////////////////////////////////////////////////
-// Timer shower;
+// Timer; showing the wall time
 
 void driver::show_wall_t( std::string title,
                           double & start, double & end )
