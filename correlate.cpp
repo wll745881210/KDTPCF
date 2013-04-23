@@ -32,7 +32,7 @@ bool correlate::is_ang_cor( false );
 
 correlate::correlate(  )
 {
-
+    
 }
 
 correlate::~correlate(  )
@@ -390,10 +390,17 @@ double correlate::phi_lim_val( int i )
 
 int correlate::s_idx_val( const double & a_2 )
 {
-    for( int i = s_num; i > -1; -- i )
-        if( s_bin_lim[ i ] <= a_2 )
-            return i;
-    return -1;
+    if( s_bin_lim[ s_num ] <= a_2 )
+        return s_num;
+    else if( s_bin_lim[ 0 ] > a_2 )
+        return -1;    
+    int i( 0 ), j( s_num );
+    while( j - i > 1 )
+    {
+        const int k = ( i + j ) >> 1;
+        s_bin_lim[ k ] < a_2 ? ( i = k ) : ( j = k );
+    }
+    return i;
 }
 
 int correlate::s_idx_arr( const double a[  ] )
@@ -403,13 +410,16 @@ int correlate::s_idx_arr( const double a[  ] )
 }
 
 int correlate::phi_idx_val( const double & mu )
-{
+{    
     if( mu >= 1. )
         return phi_num - 1;
-    for( int i = phi_num - 1; i > -1; -- i )
-        if( phi_bin_lim[ i ] >= mu )
-            return i;
-    return 0;
+    int i( 0 ), j( phi_num );
+    while( j - i > 1 )
+    {
+        const int k = ( i + j ) >> 1;
+        phi_bin_lim[ k ] > mu ? ( i = k ) : ( j = k );
+    }
+    return i;
 }
 
 double correlate::s_val( int i, double offset )
