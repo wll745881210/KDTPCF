@@ -26,7 +26,8 @@ void parallel::get_node_vec( const kdtree_node * root )
     if( ( ( num_threads ) & ( num_threads - 1 ) ) == 0 )
         max_depth = int( log( num_threads ) / log( 2. ) + 0.5 );
     else
-        max_depth = ceil( log( num_threads ) / log( 2. ) ) + 2.;
+        max_depth = int( ceil( log( num_threads ) / log( 2. ) ) )
+            + 2;
 
     work_node_vec.clear(  );
     add_work_node( root, max_depth );

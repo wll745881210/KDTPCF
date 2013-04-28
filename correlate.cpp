@@ -12,8 +12,8 @@
 ////////////////////////////////////////////////////////////
 // Static variables
 
-std::vector<unsigned> correlate::bin_counts_tot;
-std::vector<unsigned> correlate::bin_counts_tot_jk;
+correlate::llvec correlate::bin_counts_tot;
+correlate::llvec correlate::bin_counts_tot_jk;
 double correlate::s_max( 0.3 );
 double correlate::s_min( 0.01 );
 double correlate::ds( 0.01 );
@@ -347,12 +347,12 @@ void correlate::output( std::string file_name )
     return;
 }
 
-const std::vector<unsigned> & correlate::bin_count_ref(  )
+const correlate::llvec & correlate::bin_count_ref(  )
 {
     return bin_counts_tot;
 }
 
-const std::vector<unsigned> & correlate::bin_count_jk_ref(  )
+const correlate::llvec & correlate::bin_count_jk_ref(  )
 {
     return bin_counts_tot_jk;
 }

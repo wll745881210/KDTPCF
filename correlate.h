@@ -11,6 +11,10 @@
 
 class correlate
 {
+	////////// Data type declaration //////////
+private:
+	typedef std::vector<long long unsigned int> llvec;
+    
     ////////// Con/destructor and initializer //////////
 private:
     static bool is_auto_cor, is_2d_cor, is_ang_cor;
@@ -26,7 +30,7 @@ public:
     
     ////////// Compare trees //////////
 private:                        // Data
-    std::vector<unsigned> bin_counts;
+    llvec bin_counts;
 private:                        // Functions
     void brute_force( const kdtree_node * node0,
                       const kdtree_node * node1 );
@@ -39,22 +43,22 @@ public:
     ////////// Jackknife //////////
 private:                        // Data
     static int jk_num;
-    std::vector<unsigned> bin_counts_jk;
+    llvec bin_counts_jk;
 private:                        // Function
     inline void jk_add( int idx, int sample, int add );
     inline void jk_add( int idx, int sample );
 
     ////////// Output //////////
 private:                        // Data
-    static std::vector<unsigned> bin_counts_tot;
-    static std::vector<unsigned> bin_counts_tot_jk;
+    static llvec bin_counts_tot;
+    static llvec bin_counts_tot_jk;
 private:                        // Function
     static void out_one_line( std::ofstream & fout, int idx );
 public:
     void add_to_tot(  );
     static void output( std::string file_name );
-    static const std::vector<unsigned> & bin_count_ref(  );
-    static const std::vector<unsigned> & bin_count_jk_ref(  );
+    static const llvec & bin_count_ref(  );
+    static const llvec & bin_count_jk_ref(  );
     static void get_bin_center( std::vector<double> & s_v,
                                 std::vector<double> & phi_v );
     

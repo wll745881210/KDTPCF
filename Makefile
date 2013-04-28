@@ -7,7 +7,7 @@ Option = -O3 -fopenmp -Wall
 Objs = main.o kdtree.o correlate.o read_data.o input.o \
 	driver.o parallel.o
 
-Out_file = test_corr
+Out_file = kdtpcf
 
 main : $(Objs)
 	$(CC) $(Option) $(Objs) -o $(Out_file)
