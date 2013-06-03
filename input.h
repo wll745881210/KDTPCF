@@ -4,6 +4,7 @@
 #ifndef INPUT_H_
 #define INPUT_H_
 
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>    
@@ -40,6 +41,8 @@ void input::find_key( std::string key_name, T & val, t def_val )
             ss >> val;
             return;
         }
+    std::cout << "Entry \"" << key_name << "\" not found; "
+	      << "Using default value: " << def_val << std::endl;
     val = def_val;
     return;
 }
