@@ -84,7 +84,9 @@ void parallel::cal_corr( const kdtree & tree0,
     }
     for( int i = 0; i < num_objs; ++ i )
         corr_obj_vec[ i ].add_to_tot(  );
-    
+    const double norm = root0->weight * root1->weight;
+    correlate::normalize( norm );
+
     std::cout << "Done.\n";
     return;
 }

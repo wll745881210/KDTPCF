@@ -2,11 +2,11 @@
 |            Two-point correlation with k-d tree method              |
 |            https://github.com/wll745881210/KDTPCF.git              |
 |          Author: Lile Wang   Email: lilew@princeton.edu            |
-|                           April 28 2013                            |
+|                            June 3 2013                             |
 +--------------------------------------------------------------------+
 
 
-======================================================================
+-----
 -1. Copyright and warranty info
 
 KDTPCF: Two-point statistics using k-d tree.
@@ -67,13 +67,18 @@ General Public License for more details.
 
    This code requires a catalog and a random (with the same boundary
    as the catalog) to calculate auto pair-countings DD, RR and cross
-   pair-counting DR. 
+   pair-counting DR. Those two files should be ascii files without
+   header.
 
-   Those two files should be ascii files without header, with the
-   first three columns being right-ascention, declination and redshift
-   for spatial correlation, or without the redshift column for angular
-   correlation. The following columns are ignored (please do not have
-   more than 128 extra characters after the useful columns).
+   2.0.1 Unweighted catalog/random
+
+   
+
+   The first three columns are: right-ascention, declination and
+   redshift for spatial correlation, or without the redshift column
+   for angular correlation. The following columns are ignored (please
+   do not have more than 128 extra characters after the useful
+   columns).
 
    --------------------------------------------------
    2.1 Parameter file

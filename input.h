@@ -17,8 +17,8 @@ public:
     ~input(  );
 
     void read(  );
-    template <typename T>
-    void find_key( std::string key_name, T & val );
+    template <typename T, typename t>
+    void find_key( std::string key_name, T & val, t def_val );
 
 private:
     std::ifstream fin;
@@ -29,11 +29,8 @@ private:
     void get_items(  );
 };
 
-// I have to implement this function here since it
-// involves template...
-
-template <typename T>
-void input::find_key( std::string key_name, T & val )
+template <typename T, typename t>
+void input::find_key( std::string key_name, T & val, t def_val )
 {
     std::stringstream ss;
     for( unsigned i = 0; i < item_name.size(  ); ++ i )
@@ -43,6 +40,7 @@ void input::find_key( std::string key_name, T & val )
             ss >> val;
             return;
         }
+    val = def_val;
     return;
 }
 

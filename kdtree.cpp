@@ -20,17 +20,15 @@ galaxy_point & galaxy_point::operator =
 {
     for( int i = 0; i < 3; ++ i )
         this->x[ i ] = rhs.x[ i ];
+    this->weight = rhs.weight;
     return * this;
 }
 
 void galaxy_point::swap( galaxy_point & rhs )
 {
-    for( unsigned i = 0; i < 3; ++ i )
-    {
-        const double temp = this->x[ i ];
-        this->x[ i ] = rhs.x[ i ];
-        rhs.x[ i ] = temp;
-    }
+    const galaxy_point temp = rhs;
+    rhs    = * this;
+    * this = temp;
     return;
 }
 
@@ -68,13 +66,25 @@ void kdtree::clear( kdtree_node * node )
 ////////////////////////////////////////////////////////////
 // Build tree structure
 
+void kdtree::set_node_weight( kdtree_node * node )
+{
+    node->weight = 0.;
+    if( node->left != NULL && node->right != NULL )
+    {
+	node->weight += node->left->weight;
+	node->weight += node->right->weight;
+    }
+    else
+	for( int i = node->idx_start;
+	     i <= node->idx_end; ++ i )
+	    node->weight += ( * node->p_vec )[ i ].weight;
+    return;
+}
+
 kdtree_node * kdtree::create_node
 ( kdtree_node * parent_node, int idx_start, int idx_end,
   int depth ) 
-{
-    if( idx_end < idx_start )
-        return NULL;
-    
+{    
     kdtree_node * current_node = new kdtree_node;
     const int axis = depth % 3;
     const int idx_median
@@ -104,52 +114,28 @@ kdtree_node * kdtree::create_node
     else
     {        
         current_node->left
-            = create_node( current_node, idx_start,
+	    = create_node( current_node, idx_start,
                            idx_median, depth + 1  );
         current_node->right
             = create_node( current_node, idx_median
                            + 1, idx_end, depth + 1  );
     }
+    set_node_weight( current_node );
     return current_node;
 }
 
-void kdtree::display_node( kdtree_node * node, int depth )
-{
-    if( node == NULL )
-        return;
-    if( depth > 4 )
-        return;
-    
-    for( int i = 0; i < depth; ++ i )
-        std::cout << "  ";
-    std::cout << "|__"
-              << node->idx_end- node->idx_start + 1 << ' '
-              << node->max[ 0 ] << ' ' << node->max[ 1 ] << ' '
-              << node->max[ 2 ] << '\n';
-    
-    display_node( node->left, depth + 1 );
-    display_node( node->right, depth + 1 );
-    return;
-}
-
-int kdtree::build_tree(  )
+void kdtree::build_tree(  )
 {
     if( source_list.size(  ) < 1 )
-        return 0;
+        return;
     root_node = create_node
         ( NULL, 0, source_list.size(  ) - 1, 0 );
-    return source_list.size(  );
+    return;
 }
 
 const kdtree_node * kdtree::get_root_node(  ) const
 {
     return ( const kdtree_node * ) root_node;
-}
-
-void kdtree::display(  )
-{
-    display_node( root_node, 0 );
-    return;
 }
 
 ////////////////////////////////////////////////////////////

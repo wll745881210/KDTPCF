@@ -41,20 +41,21 @@ void read_data::read_from_file( std::string file_name,
         throw "Unable to open source list.";
     
     galaxy_point temp;
+    temp.weight = 1.;
     std::vector<galaxy_point> & buf = tree.source_list;
     buf.clear(  );
-    fin >> temp.x[ 0 ] >> temp.x[ 1 ];
-    if( !is_ang_cor )
-        fin >> temp.x[ 2 ];
-    fin.ignore( 64, '\n' );
-    while( ! fin.eof(  ) )
+    while( true )
     {
-        convert( temp );
-        buf.push_back( temp );
         fin >> temp.x[ 0 ] >> temp.x[ 1 ];
         if( !is_ang_cor )
-                fin >> temp.x[ 2 ];
+	    fin >> temp.x[ 2 ];
+	if( is_weighted )
+	    fin >> temp.weight;
         fin.ignore( 64, '\n' );
+	if( fin.eof(  ) )
+	    break;
+        convert( temp );
+        buf.push_back( temp );
     }
     return;
 }
@@ -97,7 +98,6 @@ void read_data::get_chi_of_z(  )
 double read_data::chi_of_z( const double & z )
 {
     unsigned idx = unsigned( z / dz );
-
     if( idx + 1 > chi_of_z_buf.size(  ) )
     {
         std::cerr << z << ' ' << idx << std::endl;
@@ -124,9 +124,9 @@ void read_data::convert( galaxy_point & src )
     return;
 }
 
-void read_data::set_ang_cor( bool ang_cor )
+void read_data::set_par( bool ang_cor, bool weighted )
 {
-    this->is_ang_cor = ang_cor;
+    this->is_ang_cor  = ang_cor;
+    this->is_weighted = weighted;
     return;
 }
-

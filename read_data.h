@@ -34,14 +34,13 @@ private:                        // Function
     void rk4( double & chi, double & z );
     void get_chi_of_z(  );
     double chi_of_z( const double & z );
-
-    ////////// Coordinate conversion //////////
-private:                        // Data
-    bool is_ang_cor;
-private:                        // Function
     void convert( galaxy_point & src );
+
+    ////////// Specification //////////
+private:                        // Data
+    bool is_ang_cor, is_weighted;
 public:
-    void set_ang_cor( bool ang_cor );
+    void set_par( bool ang_cor, bool weighted );
 
     ////////// Constants //////////
 private:

@@ -32,6 +32,7 @@ private:                        // Data
     double      s_max, s_min;
     int         s_num, phi_num;
     int         log_bin;
+    int         weighted_bin;
     int         jk_depth, jk_num;
     std::string data_file_name;
     std::string rand_file_name;
@@ -47,10 +48,9 @@ private:
     ////////// Calculate //////////
 private:                        // Data
     kdtree data,      rand;
-    int    data_size, rand_size;
-    std::vector<long long unsigned> dd, dd_jk;
-    std::vector<long long unsigned> rr, rr_jk;
-    std::vector<long long unsigned> dr, dr_jk;
+    std::vector<double> dd, dd_jk;
+    std::vector<double> rr, rr_jk;
+    std::vector<double> dr, dr_jk;
 private:                        // Function
     void cal(  );
     void cal_ls(  );			// Landy-Sazlay

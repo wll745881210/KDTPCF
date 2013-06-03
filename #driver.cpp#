@@ -27,7 +27,7 @@ void driver::read_from_par(  )
     read_par.find_key( "s_max", s_max, 30. );
     read_par.find_key( "s_min", s_min, 1. );
     read_par.find_key( "s_bin_num", s_num, 20 );
-    read_par.find_key( "phi_bin_num", phi_num, 20 );
+    read_par.find_key( "phi_bin_num", phi_num, 40 );
     read_par.find_key( "log_bin", log_bin, 0 );
     read_par.find_key( "weighted_bin", weighted_bin, 0 );    
     read_par.find_key( "file_data", data_file_name, "catalog" );

@@ -11,7 +11,8 @@ file_rand        QSO_ran_L0_c0.txt
 out_name_base    QSO
 lambda           0.7
 z_max            5
-corr_stat        2
+corr_stat        1
+weighted_bin     0
 jackknife_depth  4
 bin_count_type   1
 num_threads      1

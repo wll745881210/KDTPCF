@@ -11,9 +11,9 @@
 
 class correlate
 {
-	////////// Data type declaration //////////
+    ////////// Data type declaration //////////
 private:
-	typedef std::vector<long long unsigned int> llvec;
+    typedef std::vector<double> dvec;
     
     ////////// Con/destructor and initializer //////////
 private:
@@ -30,7 +30,7 @@ public:
     
     ////////// Compare trees //////////
 private:                        // Data
-    llvec bin_counts;
+    dvec bin_counts;
 private:                        // Functions
     void brute_force( const kdtree_node * node0,
                       const kdtree_node * node1 );
@@ -43,24 +43,22 @@ public:
     ////////// Jackknife //////////
 private:                        // Data
     static int jk_num;
-    llvec bin_counts_jk;
+    dvec bin_counts_jk;
 private:                        // Function
-    inline void jk_add( int idx, int sample, int add );
-    inline void jk_add( int idx, int sample );
+    inline void jk_add( int idx, int sample, double add );
 
     ////////// Output //////////
 private:                        // Data
-    static llvec bin_counts_tot;
-    static llvec bin_counts_tot_jk;
+    static dvec bin_counts_tot;
+    static dvec bin_counts_tot_jk;
 private:                        // Function
     static void out_one_line( std::ofstream & fout, int idx );
 public:
     void add_to_tot(  );
+    static void normalize( double factor );
     static void output( std::string file_name );
-    static const llvec & bin_count_ref(  );
-    static const llvec & bin_count_jk_ref(  );
-    static void get_bin_center( std::vector<double> & s_v,
-                                std::vector<double> & phi_v );
+    static const dvec & bin_count_ref(  );
+    static const dvec & bin_count_jk_ref(  );
     
     ////////// 2D distance //////////
 private:                        // Function

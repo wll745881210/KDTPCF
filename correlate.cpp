@@ -12,16 +12,12 @@
 ////////////////////////////////////////////////////////////
 // Static variables
 
-correlate::llvec correlate::bin_counts_tot;
-correlate::llvec correlate::bin_counts_tot_jk;
-double correlate::s_max( 0.3 );
-double correlate::s_min( 0.01 );
-double correlate::ds( 0.01 );
+correlate::dvec correlate::bin_counts_tot;
+correlate::dvec correlate::bin_counts_tot_jk;
+double correlate::s_max, correlate::s_min, correlate::ds;
 double * correlate::s_bin_lim( NULL );
 double * correlate::phi_bin_lim( NULL );
-int correlate::s_num( 20 );
-int correlate::phi_num( 20 );
-int correlate::jk_num( 16 );
+int correlate::s_num, correlate::phi_num, correlate::jk_num;
 bool correlate::is_log_bin( false );
 bool correlate::is_auto_cor( false );
 bool correlate::is_2d_cor( false );
@@ -30,23 +26,17 @@ bool correlate::is_ang_cor( false );
 ////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
 
-correlate::correlate(  )
-{
-    
-}
+correlate::correlate(  ){  }
 
-correlate::~correlate(  )
-{
-
-}
+correlate::~correlate(  ){  }
 
 void correlate::clear(  )
 {
     bin_counts.clear(  );
     bin_counts_jk.clear(  );
     const int size = is_2d_cor ? s_num*phi_num : s_num;
-    bin_counts.resize( size, 0 );
-    bin_counts_jk.resize( size * jk_num, 0 );
+    bin_counts.resize( size, 0. );
+    bin_counts_jk.resize( size * jk_num, 0. );
     return;
 }
 
@@ -55,8 +45,8 @@ void correlate::static_clear(  )
     bin_counts_tot.clear(  );
     bin_counts_tot_jk.clear(  );
     const int size = is_2d_cor ? s_num*phi_num : s_num;
-    bin_counts_tot.resize( size, 0 );
-    bin_counts_tot_jk.resize( size * jk_num, 0 );
+    bin_counts_tot.resize( size, 0. );
+    bin_counts_tot_jk.resize( size * jk_num, 0. );
     return;    
 }
 
@@ -107,6 +97,7 @@ void correlate::brute_force        // Only used when necessary
     double d0, d1, d_max[ dim ], d_min[ dim ];
     int inner_start = node1->idx_start;
     int inner_end   = node1->idx_end;
+    int idx_tot( 0 );
     const bool is_same_node( node0 == node1 );
     const int sample0( node0->jk_sample );
     const int sample1( node1->jk_sample );
@@ -128,7 +119,7 @@ void correlate::brute_force        // Only used when necessary
                 d_max[ k ] = min_is_d0 ? d1 : d0;
                 if( d0 * d1 > 0 )
                     d_min[ k ] = min_is_d0 ? d0 : d1;
-                else			// Overlap in this dimension
+                else		  // Overlap in this dimension
                     d_min[ k ] = 0.;
             }
             const int min_box_idx = s_idx_arr( d_min );
@@ -138,7 +129,8 @@ void correlate::brute_force        // Only used when necessary
             if( min_box_idx == s_idx_arr( d_max )
                 && min_box_idx > 0 )
             {
-                const int add = inner_end - inner_start + 1;
+		const double add = node1->weight
+		    * vec0[ i ].weight;
                 bin_counts[ min_box_idx ] += add;
                 if( is_valid_jk_node0 )
                     jk_add( min_box_idx, sample0, add );
@@ -167,27 +159,24 @@ void correlate::brute_force        // Only used when necessary
                 const double mu = fabs( dot( d_max, d_min ) )
                     / sqrt( los_2 * s_2 );
                 const int phi_idx = phi_idx_val( mu );
-                const int idx_tot = idx_2d( s_idx, phi_idx );
-                ++ bin_counts[ idx_tot ];
-                if( is_valid_jk_node0 )
-                    jk_add( idx_tot, sample0 );
-                if( is_valid_diff_jk )
-                    jk_add( idx_tot, sample1 );
+                idx_tot = idx_2d( s_idx, phi_idx );
             }
             else
             {
                 for( int k = 0; k < dim; ++ k )
                     d_min[ k ] = vec0[ i ].x[ k ]
                         - vec1[ j ].x[ k ];
-                const int s_idx = s_idx_arr( d_min );
-                if( s_idx > s_num - 1 || s_idx < 0 )
+                idx_tot = s_idx_arr( d_min );
+                if( idx_tot > s_num - 1 || idx_tot < 0 )
                     continue;
-                ++ bin_counts[ s_idx ];
-                if( is_valid_jk_node0 )
-                    jk_add( s_idx, sample0 );
-                if( is_valid_diff_jk )
-                    jk_add( s_idx, sample1 );
             }
+	    const double add = vec0[ i ].weight
+		* vec1[ j ].weight;
+	    bin_counts[ idx_tot ] += add;
+	    if( is_valid_jk_node0 )
+		jk_add( idx_tot, sample0, add );
+	    if( is_valid_diff_jk )
+		jk_add( idx_tot, sample1, add );
         }
     }
     return;
@@ -206,7 +195,7 @@ int correlate::node_bin( const kdtree_node * node0,
         d_max[ i ] = min_is_d0 ? d1 : d0;
         if( d0 * d1 < 0 )
             d_min[ i ] = min_is_d0 ? d0 : d1;
-        else					// Overlap in this dimension
+        else		         // Overlap in this dimension
             d_min[ i ] = 0.;
     }
     
@@ -261,9 +250,7 @@ void correlate::compare_node     //  Recursion is NOT slow!
     }
     else if( s_idx > -1 )
     {
-        const int add
-			= ( node0->idx_end - node0->idx_start + 1 )
-            * ( node1->idx_end - node1->idx_start + 1 );
+        const int add = node0->weight * node1->weight;
         bin_counts[ s_idx ] += add;
         const int sample0( node0->jk_sample );
         const int sample1( node1->jk_sample );        
@@ -278,15 +265,9 @@ void correlate::compare_node     //  Recursion is NOT slow!
 ////////////////////////////////////////////////////////////
 // Jackknife
 
-void correlate::jk_add( int idx, int sample, int add )
+void correlate::jk_add( int idx, int sample, double add )
 {
     bin_counts_jk[ idx * jk_num + sample ] += add;
-    return;
-}
-
-void correlate::jk_add( int idx, int sample )
-{
-    ++ bin_counts_jk[ idx * jk_num + sample ];
     return;
 }
 
@@ -299,6 +280,15 @@ void correlate::add_to_tot(  )
         bin_counts_tot[ i ] += bin_counts[ i ];
     for( unsigned i = 0; i < bin_counts_jk.size(  ); ++ i )
         bin_counts_tot_jk[ i ] += bin_counts_jk[ i ];
+    return;
+}
+
+void correlate::normalize( double factor )
+{
+    for( unsigned i = 0; i < bin_counts_tot.size(  ); ++ i )
+	bin_counts_tot[ i ] /= factor;
+    for( unsigned i = 0; i < bin_counts_tot_jk.size(  ); ++ i )
+	bin_counts_tot_jk[ i ] /= factor;
     return;
 }
 
@@ -330,8 +320,7 @@ void correlate::output( std::string file_name )
                 const double phi_bin_min = phi_val( j, 0. );
                 const double phi_bin_cen = phi_val( j );
                 const double phi_bin_max = phi_val( j, 1. );
-                const int k = idx_2d( std::abs( i ),
-                                      std::abs( j ) );
+                const int k = idx_2d( i, j );
                 fout << s_bin_min << '\t' << s_bin_cen << '\t'
                      << s_bin_max << '\t' << phi_bin_min << '\t'
                      << phi_bin_cen << '\t' << phi_bin_max;
@@ -347,12 +336,12 @@ void correlate::output( std::string file_name )
     return;
 }
 
-const correlate::llvec & correlate::bin_count_ref(  )
+const correlate::dvec & correlate::bin_count_ref(  )
 {
     return bin_counts_tot;
 }
 
-const correlate::llvec & correlate::bin_count_jk_ref(  )
+const correlate::dvec & correlate::bin_count_jk_ref(  )
 {
     return bin_counts_tot_jk;
 }
@@ -434,4 +423,3 @@ double correlate::phi_val( int i, double offset )
     return pi_2 * ( i + offset ) / double( phi_num )
         * rad_to_deg;    
 }
-

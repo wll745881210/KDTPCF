@@ -13,6 +13,7 @@
 struct galaxy_point
 {
     double x[ 3 ];
+    double weight;
     galaxy_point & operator = ( const galaxy_point & rhs );
     void swap( galaxy_point & rhs );
 };
@@ -23,6 +24,7 @@ struct kdtree_node
     int idx_start, idx_end;
     int jk_sample;
     double max[ 3 ], min[ 3 ];
+    double weight;
     std::vector<galaxy_point> * p_vec;
 };
 
@@ -56,14 +58,13 @@ private:                        // Data
     static int jk_depth;
     int jk_sample_count;    
 private:                        // Function
+    void set_node_weight( kdtree_node * node );
     kdtree_node * create_node( kdtree_node * parent_node,
                                int idx_start, int idx_end,
                                int depth );
-    void display_node( kdtree_node * node, int depth );
 public:
-    int build_tree(  );
+    void build_tree(  );
     const kdtree_node * get_root_node(  ) const;
-    void display(  );
     
     ////////// Median search //////////
 private:                        // Data
