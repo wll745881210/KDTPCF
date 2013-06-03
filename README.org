@@ -299,9 +299,8 @@ s is the redshift-space separation.
    
 We will add the following things to the code:
    
-** Better load-balancing for parallelization.
+- Better load-balancing for parallelization.
    
-** this code so that it will be adopting GPU for the 
-slowest part.
+- This code so that it will be adopting GPU for the slowest part.
    
    
