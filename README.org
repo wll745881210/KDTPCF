@@ -4,7 +4,7 @@
 #+EMAIL: lilew@princeton.edu
 #+UPDATE: June 3 2013
 #+LANGUAGE: en
------
+
 
 * Copyright and warranty info
 
@@ -105,24 +105,24 @@ sensitive. You may create your own parameter file and modify the
 sequence of items, but please do leave header "CORR_FUNC" and "Init"
 intact. The "par.txt" file looks like this:
 
-CORR_FUNC
-
-Init
-s_max            130
-s_min            1
-s_bin_num        20
-phi_bin_num      40
-log_bin          0
-file_data        <data_file_name>
-file_rand        <random_file_name>
-out_name_base    <out_name_base>
-lambda           0.7
-z_max            5
-corr_stat        1
-weighted_bin     0
-jackknife_depth  4
-bin_count_type   1
-num_threads      2
+| CORR_FUNC       |                    |
+|-----------------+--------------------|
+| Init            |                    |
+| s_max           |                130 |
+| s_min           |                  1 |
+| s_bin_num       |                 20 |
+| phi_bin_num     |                 40 |
+| log_bin         |                  0 |
+| file_data       |   <data_file_name> |
+| file_rand       | <random_file_name> |
+| out_name_base   |    <out_name_base> |
+| lambda          |                0.7 |
+| z_max           |                  5 |
+| corr_stat       |                  1 |
+| weighted_bin    |                  0 |
+| jackknife_depth |                  4 |
+| bin_count_type  |                  1 |
+| num_threads     |                  2 |
 
 Explanations to keys:
 
