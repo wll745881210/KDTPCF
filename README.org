@@ -155,17 +155,23 @@ missing, file_data = "catalog" and file_rand = "random".
 "Base" for the output file name. If specified, the name of the
 outputs are named as (if they are to be output):
 
--- "<out_name_base>_ddbins"
--- "<out_name_base>_rrbins"   
--- "<out_name_base>_drbins"
--- "<out_name_base>_corr"
+"<out_name_base>_ddbins"
+
+"<out_name_base>_rrbins"   
+
+"<out_name_base>_drbins"
+
+"<out_name_base>_corr"
 
 If this entry is missing, the output files are:
 
--- "<data_file_name>_ddbins"
--- "<random_file_name>_rrbins"
--- "<data_file_name>_<random_file_name>_drbins"
--- "<data_file_name>_<random_file_name>_corr"
+"<data_file_name>_ddbins"
+
+"<random_file_name>_rrbins"
+
+"<data_file_name>_<random_file_name>_drbins"
+
+"<data_file_name>_<random_file_name>_corr"
 
 - lambda, z_max:
 
