@@ -250,7 +250,7 @@ void correlate::compare_node     //  Recursion is NOT slow!
     }
     else if( s_idx > -1 )
     {
-        const int add = node0->weight * node1->weight;
+        const double add = node0->weight * node1->weight;
         bin_counts[ s_idx ] += add;
         const int sample0( node0->jk_sample );
         const int sample1( node1->jk_sample );        
@@ -298,7 +298,7 @@ void correlate::out_one_line( std::ofstream & fout, int idx )
     fout << '\t' << f * bin_counts_tot[ idx ];
     for( int j = 0; j < jk_num; ++ j )
     {
-        const int jk_res = bin_counts_tot[ idx ]
+        const double jk_res = bin_counts_tot[ idx ]
             - bin_counts_tot_jk[ j + jk_num * idx ];
         fout << '\t' << f * jk_res;
     }
