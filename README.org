@@ -2,7 +2,7 @@
 #+TITLE: Two-point correlation with k-d tree method
 #+AUTHOR: Lile Wang
 #+EMAIL: lilew@princeton.edu
-#+UPDATE: June 3 2013
+#+UPDATE: June 22 2013
 #+LANGUAGE: en
 
 

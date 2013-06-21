@@ -1,7 +1,7 @@
 CORR_FUNC
 
 Init
-s_max            30
+s_max            130
 s_min            1
 s_bin_num        20
 phi_bin_num      40
@@ -15,5 +15,5 @@ corr_stat        1
 weighted_bin     0
 jackknife_depth  4
 bin_count_type   1
-num_threads      1
+num_threads      2
 

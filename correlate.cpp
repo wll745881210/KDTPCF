@@ -8,6 +8,7 @@
 #include <vector>
 #include <cmath>
 #include <ctime>
+#include <omp.h>
 
 ////////////////////////////////////////////////////////////
 // Static variables

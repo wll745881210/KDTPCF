@@ -22,13 +22,8 @@ parallel::~parallel(  )
 
 void parallel::get_node_vec( const kdtree_node * root )
 {
-    int max_depth( 0 );
-    if( ( ( num_threads ) & ( num_threads - 1 ) ) == 0 )
-        max_depth = int( log( num_threads ) / log( 2. ) + 0.5 );
-    else
-        max_depth = int( ceil( log( num_threads ) / log( 2. ) ) )
-            + 2;
-
+    const int max_depth = int( ceil( log( num_threads )
+				     / log( 2. ) ) ) + 3;
     work_node_vec.clear(  );
     add_work_node( root, max_depth );
 
@@ -73,17 +68,20 @@ void parallel::cal_corr( const kdtree & tree0,
     correlate::set_auto_cor( root0 == root1 );
     std::cout << ( root0 == root1 ? "Auto":"Cross" )
               << "-corr... " << std::flush;
+    
     get_node_vec( root0 );
     omp_set_num_threads( num_threads );
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(dynamic)
     for( int i = 0; i < num_objs; ++ i )
     {
         corr_obj_vec[ i ].clear(  );
         corr_obj_vec[ i ].compare_node
             ( work_node_vec[ i ], root1 );
     }
+    #pragma omp parallel for
     for( int i = 0; i < num_objs; ++ i )
         corr_obj_vec[ i ].add_to_tot(  );
+	
     const double norm = root0->weight * root1->weight;
     correlate::normalize( norm );
 
