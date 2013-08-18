@@ -59,7 +59,7 @@ void parallel::cal_corr( const kdtree & tree0,
     const kdtree_node * root0 = tree0.get_root_node(  );
     const kdtree_node * root1 = tree1.get_root_node(  );
 
-    const bool is_auto_cor( root0 == root1 )
+    const bool is_auto_cor( root0 == root1 );
     correlate::set_auto_cor( is_auto_cor );
     std::cout << ( is_auto_cor ? "Auto":"Cross" )
               << "-corr... " << std::flush;

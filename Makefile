@@ -33,3 +33,5 @@ driver.o : driver.cpp driver.h
 parallel.o : parallel.cpp parallel.h
 	$(CC) $(Option) -c -o parallel.o parallel.cpp
 
+clean:
+	rm *.o *~ kdtpcf

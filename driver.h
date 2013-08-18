@@ -32,6 +32,7 @@ private:                        // Data
     double      s_max, s_min;
     int         s_num, phi_num;
     int         log_bin;
+    int         regular_phi_bin;
     int         weighted_bin;
     int         jk_depth, jk_num;
     std::string data_file_name;

@@ -20,6 +20,7 @@ double * correlate::s_bin_lim( NULL );
 double * correlate::phi_bin_lim( NULL );
 int correlate::s_num, correlate::phi_num, correlate::jk_num;
 bool correlate::is_log_bin( false );
+bool correlate::is_regular_phi_bin( false );
 bool correlate::is_auto_cor( false );
 bool correlate::is_2d_cor( false );
 bool correlate::is_ang_cor( false );
@@ -58,14 +59,16 @@ void correlate::set_auto_cor( bool auto_cor )
 }
 
 void correlate::set_par
-( double s_max_s, double s_min_s, int s_num_s,
-  int phi_num_s, bool log_bin, int corr_stat, int jk_n )
+( double s_max_s, double s_min_s, int s_num_s, bool log_bin, 
+  int phi_num_s, bool regular_phi_bin,
+  int corr_stat, int jk_n )
 {
     if( corr_stat < 0 || corr_stat > 2 )
         throw "Incorrect status";
-    is_2d_cor  = ( corr_stat == 2 );
-    is_ang_cor = ( corr_stat == 0 );
-    is_log_bin = log_bin;
+    is_2d_cor	       = ( corr_stat == 2 );
+    is_ang_cor	       = ( corr_stat == 0 );
+    is_log_bin	       = log_bin;
+    is_regular_phi_bin = regular_phi_bin;
     
     s_max = is_log_bin ? log(s_max_s) : s_max_s;
     if( is_log_bin && s_min_s < tiny )
@@ -76,7 +79,7 @@ void correlate::set_par
     s_bin_lim = new double [ s_num + 1 ];
     for( int i = 0; i < s_num + 1; ++ i )
         s_bin_lim[ i ] = s_lim_val( i );
-    
+
     phi_num = phi_num_s;
     phi_bin_lim = new double [ phi_num + 1 ];
     for( int i = 0; i < phi_num + 1; ++ i )
@@ -90,7 +93,7 @@ void correlate::set_par
 // Compare trees ( nodes )
 
 
-void correlate::brute_force        // Only used when necessary
+void correlate::brute_force        // Only when necessary
 ( const kdtree_node * node0, const kdtree_node * node1 )
 {
     const std::vector<galaxy_point> & vec0 = *(node0->p_vec);
@@ -375,7 +378,10 @@ double correlate::s_lim_val( int i )
 
 double correlate::phi_lim_val( int i )
 {
-    return cos( pi_2 * i / double( phi_num ) );
+    if( is_regular_phi_bin )
+	return cos( pi_2 * i / double( phi_num ) );
+    else
+	return 1. - i / double( phi_num );
 }
 
 int correlate::s_idx_val( const double & a_2 )
@@ -421,6 +427,9 @@ double correlate::s_val( int i, double offset )
 
 double correlate::phi_val( int i, double offset )
 {
-    return pi_2 * ( i + offset ) / double( phi_num )
-        * rad_to_deg;    
+    const double idx_ratio =  ( i + offset ) / double(phi_num);
+    if( is_regular_phi_bin )
+	return pi_2 * idx_ratio * rad_to_deg;
+    else
+	return rad_to_deg * acos( 1. - idx_ratio );
 }

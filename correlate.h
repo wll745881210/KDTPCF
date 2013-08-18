@@ -25,9 +25,10 @@ public:
     static void static_clear(  );
     static void set_auto_cor( bool auto_cor );
     static void set_par
-    ( double s_max_s, double s_min_s, int s_num_s,
-      int phi_num_s, bool log_bin, int corr_stat, int jk_n );
-    
+    ( double s_max_s, double s_min_s, int s_num_s, bool log_bin, 
+      int phi_num_s, bool regular_phi_bin,
+      int corr_stat, int jk_n );
+        
     ////////// Compare trees //////////
 private:                        // Data
     dvec bin_counts;
@@ -72,6 +73,7 @@ private:                        // Data
     static double * s_bin_lim, * phi_bin_lim;
     static int s_num, phi_num;
     static bool is_log_bin;
+    static bool is_regular_phi_bin;
 private:                        // Function
     static double s_lim_val( int i );
     static double phi_lim_val( int i );
