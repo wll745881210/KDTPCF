@@ -29,6 +29,7 @@ void driver::read_from_par(  )
     read_par.find_key( "s_bin_num", s_num, 20 );
     read_par.find_key( "phi_bin_num", phi_num, 40 );
     read_par.find_key( "log_bin", log_bin, 0 );
+    read_par.find_key( "regular_phi_bin", regular_phi_bin, 0 );
     read_par.find_key( "weighted_bin", weighted_bin, 0 );    
     read_par.find_key( "file_data", data_file_name, "catalog" );
     read_par.find_key( "file_rand", rand_file_name, "random" );
@@ -91,8 +92,9 @@ void driver::cal(  )
 
     parallel para_corr;
     para_corr.set_num_threads( num_threads );
-    correlate::set_par( s_max, s_min, s_num, phi_num,
-                        log_bin > 0, corr_stat, jk_num );
+    correlate::set_par( s_max, s_min, s_num, log_bin > 0,
+			phi_num, regular_phi_bin > 0,
+			corr_stat, jk_num );
 
     if( get_all_bins || get_dd )
     {

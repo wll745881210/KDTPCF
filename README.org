@@ -112,6 +112,7 @@ intact. The "par.txt" file looks like this:
 | s_min           |                  1 |
 | s_bin_num       |                 20 |
 | phi_bin_num     |                 40 |
+| regular_phi_bin |                  0 |
 | log_bin         |                  0 |
 | file_data       |   <data_file_name> |
 | file_rand       | <random_file_name> |
@@ -134,10 +135,16 @@ system with constant binning width in linear manner. "s_max" and
 "s_min" for maximum and minimum separatuib respectively (in deg for
 angular separation and Mpc/h for spatial separation); "s_bin_num"
 gives the number of bins in separation; "phi_bin_num" gives binning
-number of the angle between the separation vector and the line of
-sight (this key can be missing if you do not calculate the 2-D
-correlation). If missing, s_max = 30, s_min = 1, s_bin_num = 20 and
-phi_bin_num = 40;
+number of the angle ("phi"), or its cosine (see "regular_phi_bin"),
+between the separation vector and the line of sight (this key can be
+missing if you do not calculate the 2-D correlation). If missing,
+s_max = 30, s_min = 1, s_bin_num = 20 and phi_bin_num = 40;
+
+- regular_phi_bin:
+
+0 or missing for angular bins that are regularly distributed in
+cos(phi) (which is typically referred to as "mu"), 1 for those that
+are regularly distributed in phi.
 
 - log_bin:
 
