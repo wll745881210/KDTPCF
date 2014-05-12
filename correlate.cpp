@@ -59,8 +59,8 @@ void correlate::set_auto_cor( bool auto_cor )
 }
 
 void correlate::set_par
-( double s_max_s, double s_min_s, int s_num_s, bool log_bin, 
-  int phi_num_s, bool regular_phi_bin,
+( double s_max_s, double s_min_s, int s_num_s,
+  bool log_bin, int phi_num_s, bool regular_phi_bin,
   int corr_stat, int jk_n )
 {
     if( corr_stat < 0 || corr_stat > 2 )
@@ -109,7 +109,8 @@ void correlate::brute_force        // Only when necessary
     const bool is_valid_diff_jk
         = ( sample1 >= 0 ) && ( sample0 != sample1 );
 
-    for( int i = node0->idx_start; i <= node0->idx_end; ++ i )
+    for( int i = node0->idx_start;
+	 i <= node0->idx_end; ++ i )
     {
         if( is_same_node )
             inner_start = i + 1;
@@ -119,11 +120,12 @@ void correlate::brute_force        // Only when necessary
             {
                 d0 = vec0[ i ].x[ k ] - node1->max[ k ];
                 d1 = vec0[ i ].x[ k ] - node1->min[ k ];
-                const bool min_is_d0 = fabs( d0 ) < fabs( d1 );
+                const bool min_is_d0
+		    = fabs( d0 ) < fabs( d1 );
                 d_max[ k ] = min_is_d0 ? d1 : d0;
                 if( d0 * d1 > 0 )
                     d_min[ k ] = min_is_d0 ? d0 : d1;
-                else		  // Overlap in this dimension
+                else	      // Overlap in this dimension
                     d_min[ k ] = 0.;
             }
             const int min_box_idx = s_idx_arr( d_min );
@@ -131,7 +133,7 @@ void correlate::brute_force        // Only when necessary
                 continue;
             
             if( min_box_idx == s_idx_arr( d_max )
-                && min_box_idx > 0 )
+                && min_box_idx > 0 && ( ! is_2d_cor ) )
             {
 		const double add = node1->weight
 		    * vec0[ i ].weight;
@@ -379,9 +381,9 @@ double correlate::s_lim_val( int i )
 double correlate::phi_lim_val( int i )
 {
     if( is_regular_phi_bin )
-	return cos( pi_2 * i / double( phi_num ) );
+        return cos( pi_2 * i / double( phi_num ) );
     else
-	return 1. - i / double( phi_num );
+        return 1. - i / double( phi_num );
 }
 
 int correlate::s_idx_val( const double & a_2 )
@@ -427,9 +429,10 @@ double correlate::s_val( int i, double offset )
 
 double correlate::phi_val( int i, double offset )
 {
-    const double idx_ratio =  ( i + offset ) / double(phi_num);
+    const double idx_ratio
+	= ( i + offset ) / double(phi_num);
     if( is_regular_phi_bin )
-	return pi_2 * idx_ratio * rad_to_deg;
+        return pi_2 * idx_ratio * rad_to_deg;
     else
-	return rad_to_deg * acos( 1. - idx_ratio );
+        return rad_to_deg * acos( 1. - idx_ratio );
 }
