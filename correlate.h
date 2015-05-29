@@ -86,10 +86,10 @@ public:
 
     ////////// Constants //////////
 private:
-    static const double pi_2 = 1.5707963267948966;
-    static const double rad_to_deg = 57.29577951308232;
-    static const int dim = 3;
-    static const double tiny = 1.e-2;
+    static const double pi_2; // = 1.5707963267948966;
+    static const double rad_to_deg; // = 57.29577951308232;
+    static const int dim; // = 3;
+    static const double tiny; // = 1.e-2;
 };
 
 #endif

@@ -19,24 +19,27 @@ driver::~driver(  ){  }
 
 void driver::read_from_par(  )
 {
-    input read_par( par_file_name );
-    read_par.read(  );
-    read_par.find_key( "corr_stat", corr_stat, 1 );
-    read_par.find_key( "num_threads", num_threads, 1 );
-    read_par.find_key( "bin_count_type", bin_count_type, 1 );
-    read_par.find_key( "s_max", s_max, 30. );
-    read_par.find_key( "s_min", s_min, 1. );
-    read_par.find_key( "s_bin_num", s_num, 20 );
-    read_par.find_key( "phi_bin_num", phi_num, 40 );
-    read_par.find_key( "log_bin", log_bin, 0 );
-    read_par.find_key( "regular_phi_bin", regular_phi_bin, 0 );
-    read_par.find_key( "weighted_bin", weighted_bin, 0 );    
-    read_par.find_key( "file_data", data_file_name, "catalog" );
-    read_par.find_key( "file_rand", rand_file_name, "random" );
-    read_par.find_key( "out_name_base", out_name_base, "" );
-    read_par.find_key( "lambda", lambda, 0.7 );
-    read_par.find_key( "z_max", z_max, 5. );    
-    read_par.find_key( "jackknife_depth", jk_depth, 4 );
+    input in( par_file_name );
+    in.read(  );
+    in.find_key( "corr_stat",       corr_stat,       1   );
+    in.find_key( "num_threads",     num_threads,     1   );
+    in.find_key( "bin_count_type",  bin_count_type,  1   );
+    in.find_key( "s_max",           s_max,           30. );
+    in.find_key( "s_min",           s_min,           1.  );
+    in.find_key( "s_bin_num",       s_num,           20  );
+    in.find_key( "phi_bin_num",     phi_num,         40  );
+    in.find_key( "log_bin",         log_bin,         0   );
+    in.find_key( "regular_phi_bin", regular_phi_bin, 0   );
+    in.find_key( "weighted_bin",    weighted_bin,    0   );
+    in.find_key( "jackknife_depth", jk_depth,        4   );
+
+    in.find_key( "file_data",    data_file_name, "catalog" );
+    in.find_key( "file_rand",    rand_file_name, "random"  );
+    in.find_key( "out_name_base", out_name_base, ""        );
+
+    in.find_key( "lambda",          lambda,   0.7 );
+    in.find_key( "z_max",           z_max,    5.  );    
+
     jk_depth = jk_depth <= 0 ? 4 : jk_depth;
     jk_num = ( 1 << jk_depth );
     
@@ -56,7 +59,8 @@ void driver::build_trees(  )
     read.read_from_file( data_file_name, data );
     read.read_from_file( rand_file_name, rand );
     
-    std::cout << "Done.\n" << "Building trees..." << std::flush;
+    std::cout << "Done.\n" << "Building trees..."
+	      << std::flush;
     kdtree::set_jackknife_depth( jk_depth );
     data.build_tree(  );
     rand.build_tree(  );

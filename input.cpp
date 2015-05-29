@@ -1,6 +1,3 @@
-// Copyright (C) 2013 Lile Wang
-// For full notice, see "main.cpp" and "COPYING".
-
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -8,13 +5,13 @@
 #include <cmath>
 #include "input.h"
 
-input::input(  ) : fin( "par.txt" ), length( 0 )
+input::input(  ) : fin( "par.txt" )
 {
 
 }
 
 input::input( const std::string & file_name )
-    : fin( file_name.c_str(  ) ), length( 0 )
+    : fin( file_name.c_str(  ) )
 {
 
 }
@@ -68,11 +65,12 @@ void input::get_items(  )
         ss.str( line_temp );        
         ss >> item_temp;
         ss >> value_temp;
-        item_name.push_back( item_temp );
-        value.push_back( value_temp );
+	std::pair<std::string, std::string>
+	    item ( item_temp, value_temp );
+	item_map.insert( item );
+	
         std::cout << std::setw( 20 ) << std::left
                   << item_temp << value_temp << std::endl;
     }
-    length = item_name.size(  );
     return;
 }

@@ -1,8 +1,8 @@
 # Copyright (C) 2013 Lile Wang
 # For full notice, see "main.cpp" and "COPYING".
 
-CC = g++
-Option = -O3 -fopenmp -Wall
+CC = g++-4.8
+Option = -O3 -fopenmp -Wall -std=c++11
 
 Objs = main.o kdtree.o correlate.o read_data.o input.o \
 	driver.o parallel.o

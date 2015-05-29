@@ -25,6 +25,11 @@ bool correlate::is_auto_cor( false );
 bool correlate::is_2d_cor( false );
 bool correlate::is_ang_cor( false );
 
+const double correlate::pi_2 = 1.5707963267948966;
+const double correlate::rad_to_deg = 57.29577951308232;
+const int    correlate::dim = 3; 
+const double correlate::tiny = 1.e-2;
+
 ////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
 

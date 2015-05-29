@@ -8,6 +8,16 @@
 #include <cmath>
 
 ////////////////////////////////////////////////////////////
+// Static variables
+
+const double read_data::c	    = 299792.458;
+const double read_data::H1	    = 100;  // in km/s/Mpc
+const double read_data::pi	    = 3.14159265358979;
+const double read_data::nearly_zero = 1e-15;
+const double read_data::rad_to_deg  = 57.29577951308232;
+
+
+////////////////////////////////////////////////////////////
 // Constructor, destructor and initializer
 
 read_data::read_data(  )
